@@ -63,12 +63,14 @@ export function evaluateLegalMetrologyCompliance(reviewedData: ExtractedData): C
     ? Math.round((earnedPoints / totalApplicablePoints) * 100)
     : 0;
 
-  // Final status determination
+  // Final status determination:
+  // Strictly require 100% compliance score with ZERO deficiencies to earn PASS certification.
+  // Any evaluation with score < 100 or non-zero issues results in FAIL or WARNING (requiring a Statutory Notice).
   let finalStatus: 'PASS' | 'FAIL' | 'WARNING' = 'PASS';
 
   if (failedCount > 0 || criticalViolationsCount > 0 || complianceScore < 80) {
     finalStatus = 'FAIL';
-  } else if (warningCount > 0 || complianceScore < 95) {
+  } else if (warningCount > 0 || complianceScore < 100) {
     finalStatus = 'WARNING';
   } else {
     finalStatus = 'PASS';

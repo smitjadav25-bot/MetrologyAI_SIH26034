@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/AuthProvider';
 import { CameraCapture } from '@/components/CameraCapture';
 import { validateImageQuality } from '@/lib/imageQuality';
 import { AnalysisLoader } from '@/components/AnalysisLoader';
@@ -30,9 +32,18 @@ interface SelectedImageItem {
 type Step = 'UPLOAD' | 'ANALYZING' | 'REVIEW' | 'RESULT';
 
 export default function InspectionPage() {
+  const router = useRouter();
+  const { inspector, isLoading } = useAuth();
+
   const [step, setStep] = useState<Step>('UPLOAD');
   const [selectedImages, setSelectedImages] = useState<SelectedImageItem[]>([]);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !inspector) {
+      router.push('/login?redirect=/inspection');
+    }
+  }, [isLoading, inspector, router]);
 
   const [qualityError, setQualityError] = useState<string | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -156,12 +167,19 @@ export default function InspectionPage() {
         extractedData,
         images: serverImages,
         inspectorRemarks,
-        inspector: {
-          id: 'INS-OFFICER-402',
-          name: 'Inspector S. K. Verma',
-          designation: 'Legal Metrology Inspector',
-          jurisdiction: 'Zone-1 Enforcement Division'
-        }
+        inspector: inspector
+          ? {
+              id: inspector.officerId || inspector.id,
+              name: inspector.name,
+              designation: inspector.designation,
+              jurisdiction: inspector.jurisdiction
+            }
+          : {
+              id: 'INS-OFFICER-402',
+              name: 'Inspector S. K. Verma',
+              designation: 'Legal Metrology Inspector',
+              jurisdiction: 'Zone-1 Enforcement Division'
+            }
       };
 
       const res = await fetch('/api/inspections', {

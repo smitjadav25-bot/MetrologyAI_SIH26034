@@ -44,6 +44,23 @@ export function getInspectionByNoticeId(noticeId: string): Inspection | null {
   return all.find(i => i.noticeId && i.noticeId.toLowerCase() === noticeId.toLowerCase()) || null;
 }
 
+export function deleteInspection(id: string): boolean {
+  ensureDataDir();
+  const all = getInspections();
+  const targetIdx = all.findIndex(
+    i =>
+      i.inspectionId.toLowerCase() === id.toLowerCase() ||
+      (i.certificateId && i.certificateId.toLowerCase() === id.toLowerCase()) ||
+      (i.noticeId && i.noticeId.toLowerCase() === id.toLowerCase())
+  );
+
+  if (targetIdx === -1) return false;
+
+  all.splice(targetIdx, 1);
+  fs.writeFileSync(INSPECTIONS_FILE, JSON.stringify(all, null, 2), 'utf-8');
+  return true;
+}
+
 export function saveInspection(inspection: Inspection): Inspection {
   ensureDataDir();
   const all = getInspections();

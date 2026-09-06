@@ -1,0 +1,24 @@
+[
+  {
+    "id": "admin-smit-001",
+    "officerId": "ADMIN-001",
+    "name": "smit",
+    "email": "smit@admin.metrology.gov.in",
+    "passwordHash": "$2b$10$XTquPOs97pZxVFHbcIV/zuHorc0aKM1wo6QR347/MBf1WMP0HkRZO",
+    "designation": "Chief Administrator",
+    "jurisdiction": "Central Metrology Directorate",
+    "role": "ADMIN",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "ins-1788694593899-z7i4s",
+    "officerId": "INS-001",
+    "name": "dhruv",
+    "email": "dhruvkotak@gmail.com",
+    "passwordHash": "$2b$10$yKRmeelr1HQA/DKyR0LvzefDlAU1xXDHv588AnCePKF2fBgtqCiQe",
+    "designation": "Legal Metrology Inspector",
+    "jurisdiction": "Zone-2 Enforcement Directorate",
+    "role": "INSPECTOR",
+    "createdAt": "2026-09-06T11:36:33.899Z"
+  }
+]

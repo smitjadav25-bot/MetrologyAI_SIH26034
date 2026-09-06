@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeProductPackagingWithVlm, InputImagePart } from '@/lib/gemini';
+import { getCurrentInspector } from '@/lib/auth';
 import fs from 'fs';
 import path from 'path';
 
@@ -16,6 +17,11 @@ function ensureUploadsDir(): void {
 
 export async function POST(req: NextRequest) {
   try {
+    const inspector = await getCurrentInspector();
+    if (!inspector) {
+      return NextResponse.json({ error: 'Unauthorized. Inspector session required.' }, { status: 401 });
+    }
+
     const formData = await req.formData();
     const files: File[] = [];
 

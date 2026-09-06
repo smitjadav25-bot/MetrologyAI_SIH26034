@@ -60,10 +60,10 @@ export default async function HomePage() {
             </div>
 
             {/* Public Calls to Action */}
-            <div className="pt-4 flex flex-wrap items-center justify-center sm:justify-start gap-4">
+            <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-start gap-3 sm:gap-4">
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2.5 px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl shadow-lg transition transform active:scale-95"
+                className="inline-flex items-center justify-center gap-2.5 px-6 sm:px-8 py-3.5 sm:py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl shadow-lg transition transform active:scale-95 text-center"
               >
                 <LogIn className="w-4 h-4" />
                 <span>Inspector Sign In</span>
@@ -71,7 +71,7 @@ export default async function HomePage() {
 
               <Link
                 href="/register"
-                className="inline-flex items-center gap-2.5 px-7 py-4 bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl border border-slate-700 transition transform active:scale-95"
+                className="inline-flex items-center justify-center gap-2.5 px-5 sm:px-7 py-3.5 sm:py-4 bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl border border-slate-700 transition transform active:scale-95 text-center"
               >
                 <UserPlus className="w-4 h-4 text-emerald-400" />
                 <span>Register Official Account</span>
@@ -79,7 +79,7 @@ export default async function HomePage() {
 
               <Link
                 href="/admin/login"
-                className="inline-flex items-center gap-2 px-6 py-4 bg-red-950/70 hover:bg-red-900/90 text-red-300 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl border border-red-700/60 shadow-lg transition transform active:scale-95"
+                className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3.5 sm:py-4 bg-red-950/70 hover:bg-red-900/90 text-red-300 text-xs sm:text-sm font-bold uppercase tracking-wider rounded-xl border border-red-700/60 shadow-lg transition transform active:scale-95 text-center"
               >
                 <ShieldAlert className="w-4 h-4 text-red-400" />
                 <span>Admin Login</span>
@@ -87,7 +87,7 @@ export default async function HomePage() {
             </div>
 
             {/* Trust Badges */}
-            <div className="pt-8 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs text-slate-400">
+            <div className="pt-8 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs text-slate-400">
               <div className="flex items-center gap-2">
                 <Check className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>Rule 6 Mandatory Labels</span>
@@ -379,22 +379,22 @@ export default async function HomePage() {
             <p className="text-slate-300 text-sm max-w-xl mx-auto">
               Sign in to your inspector account to start evaluating packaged commodities or register your enforcement credentials.
             </p>
-            <div className="pt-2 flex flex-wrap items-center justify-center gap-4">
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
               <Link
                 href="/login"
-                className="px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition"
+                className="px-6 sm:px-8 py-3.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition text-center"
               >
                 Sign In as Inspector
               </Link>
               <Link
                 href="/register"
-                className="px-8 py-3.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl border border-slate-700 transition"
+                className="px-6 sm:px-8 py-3.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl border border-slate-700 transition text-center"
               >
                 Register Account
               </Link>
               <Link
                 href="/admin/login"
-                className="px-6 py-3.5 bg-red-950/80 hover:bg-red-900 text-red-300 text-xs font-bold uppercase tracking-wider rounded-xl border border-red-700/60 transition"
+                className="px-6 py-3.5 bg-red-950/80 hover:bg-red-900 text-red-300 text-xs font-bold uppercase tracking-wider rounded-xl border border-red-700/60 transition text-center"
               >
                 Admin Login
               </Link>
@@ -441,17 +441,17 @@ export default async function HomePage() {
     <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Inspector Welcome & Quick Action Banner */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-xs relative overflow-hidden">
+        <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-5 sm:p-8 lg:p-10 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-50/60 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
           <div className="relative space-y-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
               <div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-semibold mb-2">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                   <span>Enforcement Directorate Active Session</span>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">
                   Welcome back, <span className="text-emerald-700">{inspector.name}</span>
                 </h1>
                 <p className="text-xs text-slate-500 mt-1 font-medium">
@@ -460,10 +460,10 @@ export default async function HomePage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                 <Link
                   href="/inspection"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition transform active:scale-95"
+                  className="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition transform active:scale-95 text-center"
                 >
                   <PlusCircle className="w-4 h-4 text-emerald-400" />
                   <span>Start New Inspection</span>
@@ -471,7 +471,7 @@ export default async function HomePage() {
 
                 <Link
                   href="/history"
-                  className="inline-flex items-center gap-2 px-5 py-3 border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold uppercase tracking-wider rounded-xl transition"
+                  className="inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 border border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold uppercase tracking-wider rounded-xl transition text-center"
                 >
                   <span>Inspection History</span>
                 </Link>

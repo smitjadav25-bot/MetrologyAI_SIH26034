@@ -208,12 +208,12 @@ export function AdminDashboard({
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold uppercase tracking-wider rounded-xl border border-slate-700 shadow-sm transition disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold uppercase tracking-wider rounded-xl border border-slate-700 shadow-sm transition disabled:opacity-50 text-center"
                   title="Synchronize database records"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
@@ -222,7 +222,7 @@ export function AdminDashboard({
 
                 <Link
                   href="/inspection"
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition text-center"
                 >
                   <PlusCircle className="w-4 h-4" />
                   <span>New Inspection</span>
@@ -299,11 +299,11 @@ export function AdminDashboard({
         )}
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-3 border-b border-slate-200 pb-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 border-b border-slate-200 pb-2">
           <button
             type="button"
             onClick={() => setActiveTab('inspections')}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
+            className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
               activeTab === 'inspections'
                 ? 'bg-slate-900 text-white shadow-sm'
                 : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
@@ -316,7 +316,7 @@ export function AdminDashboard({
           <button
             type="button"
             onClick={() => setActiveTab('inspectors')}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
+            className={`inline-flex items-center justify-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition ${
               activeTab === 'inspectors'
                 ? 'bg-slate-900 text-white shadow-sm'
                 : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
@@ -439,7 +439,7 @@ export function AdminDashboard({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
                         {item.finalStatus === 'PASS' && item.complianceScore === 100 && item.certificateId ? (
                           <a
                             href={`/api/pdf/certificate/${item.certificateId}`}
@@ -588,7 +588,7 @@ export function AdminDashboard({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
                       {isAdminAccount ? (
                         <span className="text-[11px] text-slate-400 italic px-2.5 py-1 bg-slate-100 rounded-lg border border-slate-200">
                           Root Admin (Protected)

@@ -44,6 +44,7 @@ export function ReviewForm({
   const [remarks, setRemarks] = useState<string>('');
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [activeFieldKey, setActiveFieldKey] = useState<keyof ExtractedData | null>(null);
+  const [mobileActiveTab, setMobileActiveTab] = useState<'form' | 'evidence'>('form');
 
   const currentExemption = (data.packaging_exemption?.value || data.contrast_assessment?.exemptionType || 'NONE') as PackagingExemptionType;
   const currentMrpContrast = (data.color_contrast_mrp?.value || data.contrast_assessment?.mrpContrast || 'CONSPICUOUS') as ContrastLevel;
@@ -181,7 +182,7 @@ export function ReviewForm({
         }`}
         onClick={() => setActiveFieldKey(key)}
       >
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
           <label
             htmlFor={`field-${key}`}
             className={`text-xs font-semibold cursor-pointer ${
@@ -197,6 +198,7 @@ export function ReviewForm({
                 onClick={(e) => {
                   e.stopPropagation();
                   setActiveFieldKey(key);
+                  setMobileActiveTab('evidence');
                 }}
                 title="Locate label on packaging image (zooms in)"
                 className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md transition ${
@@ -271,10 +273,38 @@ export function ReviewForm({
         </div>
       )}
 
+      {/* Mobile / Tablet View Switcher (< lg) */}
+      <div className="lg:hidden flex items-center p-1 bg-slate-200/80 rounded-xl mb-2">
+        <button
+          type="button"
+          onClick={() => setMobileActiveTab('form')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
+            mobileActiveTab === 'form'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <FileCheck2 className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Declarations Form</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileActiveTab('evidence')}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 ${
+            mobileActiveTab === 'evidence'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Eye className="w-3.5 h-3.5 text-indigo-600" />
+          <span>Packaging Evidence ({images.length})</span>
+        </button>
+      </div>
+
       {/* Main Grid: Form Left, Reference Images Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Form Area (7 Cols on desktop) */}
-        <div className="lg:col-span-7 space-y-5">
+        <div className={`lg:col-span-7 space-y-5 ${mobileActiveTab === 'form' ? 'block' : 'hidden lg:block'}`}>
           {/* Card 1: Product Identification */}
           <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
             <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
@@ -584,11 +614,31 @@ export function ReviewForm({
               className="w-full text-xs rounded-lg px-3 py-2 border border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-slate-900"
             />
           </div>
+          {/* Mobile Bottom Quick Actions */}
+          <div className="lg:hidden pt-3 space-y-2.5">
+            <button
+              type="button"
+              onClick={() => setMobileActiveTab('evidence')}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 transition"
+            >
+              <Eye className="w-4 h-4 text-indigo-600" />
+              <span>Inspect Packaging Images ({images.length})</span>
+            </button>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition disabled:opacity-50"
+            >
+              <span>{isSubmitting ? 'Evaluating Rules...' : 'Run Compliance Check'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Right Sidebar: Interactive Packaging Evidence & Bounding Boxes (5 Cols on desktop) */}
-        <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs sticky top-20">
+        <div className={`lg:col-span-5 space-y-4 ${mobileActiveTab === 'evidence' ? 'block' : 'hidden lg:block'}`}>
+          <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs lg:sticky lg:top-20">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
               <div className="flex items-center gap-2">
                 <FileCheck2 className="w-4 h-4 text-emerald-600" />
@@ -610,6 +660,7 @@ export function ReviewForm({
                 activeFieldKey={activeFieldKey}
                 onSelectField={(key) => {
                   setActiveFieldKey(key);
+                  setMobileActiveTab('form');
                   const el = document.getElementById(`field-${key}`);
                   if (el) {
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -619,8 +670,20 @@ export function ReviewForm({
               />
             )}
 
+            {/* Mobile Return to Form button */}
+            <div className="lg:hidden pt-3 border-t border-slate-100 mt-3">
+              <button
+                type="button"
+                onClick={() => setMobileActiveTab('form')}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl border border-slate-300 transition"
+              >
+                <FileCheck2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Return to Declarations Form</span>
+              </button>
+            </div>
+
             {/* Run Compliance Check Button */}
-            <div className="pt-5 border-t border-slate-100 mt-4">
+            <div className="pt-4 border-t border-slate-100 mt-4">
               <button
                 type="submit"
                 disabled={isSubmitting}

@@ -219,7 +219,7 @@ export default function InspectionPage() {
     <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Navigation Breadcrumb / Top Row */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <Link
             href="/"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-900 transition"
@@ -229,7 +229,23 @@ export default function InspectionPage() {
           </Link>
 
           {/* Workflow Stage Progress */}
-          <div className="flex items-center gap-2 text-xs font-semibold">
+          {/* Mobile Step Badge (< sm) */}
+          <div className="flex sm:hidden items-center justify-between bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold shadow-2xs">
+            <span className="text-slate-500">
+              {step === 'UPLOAD' && 'Step 1 of 3'}
+              {(step === 'ANALYZING' || step === 'REVIEW') && 'Step 2 of 3'}
+              {step === 'RESULT' && 'Step 3 of 3'}
+            </span>
+            <span className="text-emerald-700">
+              {step === 'UPLOAD' && 'Upload Packaging'}
+              {step === 'ANALYZING' && 'Analyzing Packaging...'}
+              {step === 'REVIEW' && 'Review Declarations'}
+              {step === 'RESULT' && 'Compliance Outcome'}
+            </span>
+          </div>
+
+          {/* Tablet & Desktop Step Badges (>= sm) */}
+          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold">
             <span
               className={`px-2.5 py-1 rounded-full ${
                 step === 'UPLOAD'
@@ -282,7 +298,7 @@ export default function InspectionPage() {
 
               {/* Quality Error Banner */}
               {qualityError && (
-                <div className="mt-5 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start justify-between gap-4">
+                <div className="mt-5 p-4 bg-amber-50 border border-amber-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                     <div>
@@ -290,18 +306,18 @@ export default function InspectionPage() {
                       <div className="text-xs text-amber-800 mt-0.5">{qualityError}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={() => setIsCameraOpen(true)}
-                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition"
+                      className="flex-1 sm:flex-none text-center px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg transition"
                     >
                       Retake Photo
                     </button>
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-3 py-1.5 border border-amber-300 bg-white hover:bg-amber-50 text-amber-900 text-xs font-semibold rounded-lg transition"
+                      className="flex-1 sm:flex-none text-center px-3 py-1.5 border border-amber-300 bg-white hover:bg-amber-50 text-amber-900 text-xs font-semibold rounded-lg transition"
                     >
                       Upload Better Image
                     </button>
@@ -311,7 +327,7 @@ export default function InspectionPage() {
 
               {/* Analysis Error Banner */}
               {analysisError && (
-                <div className="mt-5 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start justify-between gap-4">
+                <div className="mt-5 p-4 bg-red-50 border border-red-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div className="flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                     <div>
@@ -319,18 +335,18 @@ export default function InspectionPage() {
                       <div className="text-xs text-red-800 mt-0.5">{analysisError}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={handleStartAnalysis}
-                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition"
+                      className="flex-1 sm:flex-none text-center px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition"
                     >
                       Try Again
                     </button>
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-3 py-1.5 border border-red-300 bg-white hover:bg-red-50 text-red-900 text-xs font-semibold rounded-lg transition"
+                      className="flex-1 sm:flex-none text-center px-3 py-1.5 border border-red-300 bg-white hover:bg-red-50 text-red-900 text-xs font-semibold rounded-lg transition"
                     >
                       Upload Another Image
                     </button>
@@ -339,7 +355,7 @@ export default function InspectionPage() {
               )}
 
               {/* Action Buttons: Upload & Camera */}
-              <div className="mt-6 flex flex-wrap items-center gap-4">
+              <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -352,7 +368,7 @@ export default function InspectionPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-2.5 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-xs transition"
+                  className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-xs transition"
                 >
                   <Upload className="w-4 h-4 text-emerald-400" />
                   <span>Upload Image</span>
@@ -361,14 +377,14 @@ export default function InspectionPage() {
                 <button
                   type="button"
                   onClick={() => setIsCameraOpen(true)}
-                  className="inline-flex items-center gap-2.5 px-6 py-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wider rounded-xl shadow-xs transition"
+                  className="inline-flex items-center justify-center gap-2.5 px-6 py-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wider rounded-xl shadow-xs transition"
                 >
                   <Camera className="w-4 h-4 text-slate-600" />
                   <span>Take Photo</span>
                 </button>
 
-                <span className="text-xs text-slate-400">
-                  Multiple images of the same product supported (Front, Back, Side)
+                <span className="text-xs text-slate-400 text-center sm:text-left">
+                  Multiple images supported (Front, Back, Side)
                 </span>
               </div>
             </div>
@@ -433,14 +449,14 @@ export default function InspectionPage() {
                 </div>
 
                 {/* Primary Proceed Action */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs text-slate-500">
+                <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <span className="text-xs text-slate-500 text-center sm:text-left">
                     One or more photos ready for visual understanding.
                   </span>
                   <button
                     type="button"
                     onClick={handleStartAnalysis}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition text-center"
                   >
                     <Sparkles className="w-4 h-4" />
                     <span>Analyze Product</span>

@@ -97,8 +97,8 @@ export default async function HistoryPage() {
 
               <div className="divide-y divide-slate-100">
                 {inspections.map((item) => {
-                  const isPass = item.finalStatus === 'PASS';
-                  const isFail = item.finalStatus === 'FAIL';
+                  const isPass = item.finalStatus === 'PASS' && item.complianceScore === 100;
+                  const isFail = !isPass;
 
                   const docUrl = isPass
                     ? `/api/pdf/certificate/${item.certificateId || item.inspectionId}`

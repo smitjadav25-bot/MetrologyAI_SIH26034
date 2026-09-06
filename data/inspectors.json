@@ -20,5 +20,16 @@
     "jurisdiction": "Zone-2 Enforcement Directorate",
     "role": "INSPECTOR",
     "createdAt": "2026-09-06T11:36:33.899Z"
+  },
+  {
+    "id": "ins-1788696970387-1s7my",
+    "officerId": "INS-MEERA",
+    "name": "Inspector Meera Sharma",
+    "email": "meera.sharma@metrology.gov.in",
+    "passwordHash": "$2b$10$l4lGzks0j7DZlHaJPFGOa.DoZlYzRBhk3mAZEGzru0qfSDapZ6KuO",
+    "designation": "Senior Legal Metrology InspectorLegal Metrology Inspector",
+    "jurisdiction": "Zone-2 EnforZone-1 Northern Directoratecement Directorate",
+    "role": "INSPECTOR",
+    "createdAt": "2026-09-06T12:16:10.387Z"
   }
 ]

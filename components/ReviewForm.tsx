@@ -1,8 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { ExtractedData, ExtractedField, UploadedImageEvidence } from '@/types/inspection';
-import { CheckCircle2, AlertTriangle, HelpCircle, Edit3, ShieldAlert, FileCheck2, ArrowRight } from 'lucide-react';
+import {
+  ExtractedData,
+  ExtractedField,
+  UploadedImageEvidence,
+  ContrastLevel,
+  GeneralLegibilityLevel,
+  PackagingExemptionType
+} from '@/types/inspection';
+import {
+  CheckCircle2,
+  AlertTriangle,
+  HelpCircle,
+  Edit3,
+  ShieldAlert,
+  FileCheck2,
+  ArrowRight,
+  Palette,
+  Eye,
+  ShieldCheck,
+  Info
+} from 'lucide-react';
 
 interface ReviewFormProps {
   initialData: ExtractedData;
@@ -23,10 +42,64 @@ export function ReviewForm({
   const [remarks, setRemarks] = useState<string>('');
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
 
+  const currentExemption = (data.packaging_exemption?.value || data.contrast_assessment?.exemptionType || 'NONE') as PackagingExemptionType;
+  const currentMrpContrast = (data.color_contrast_mrp?.value || data.contrast_assessment?.mrpContrast || 'CONSPICUOUS') as ContrastLevel;
+  const currentNetQtyContrast = (data.color_contrast_net_quantity?.value || data.contrast_assessment?.netQuantityContrast || 'CONSPICUOUS') as ContrastLevel;
+  const currentLegibility = (data.general_legibility?.value || data.contrast_assessment?.generalLegibility || 'LEGIBLE') as GeneralLegibilityLevel;
+
+  const handleExemptionChange = (exemption: PackagingExemptionType) => {
+    setData((prev) => ({
+      ...prev,
+      packaging_exemption: {
+        value: exemption,
+        confidence: 'high',
+        sourceImage: null,
+        modifiedByInspector: true
+      },
+      contrast_assessment: {
+        ...(prev.contrast_assessment || {
+          mrpContrast: 'CONSPICUOUS',
+          netQuantityContrast: 'CONSPICUOUS',
+          generalLegibility: 'LEGIBLE',
+          exemptionType: 'NONE'
+        }),
+        exemptionType: exemption
+      }
+    }));
+  };
+
+  const handleContrastSelect = (
+    field: 'color_contrast_mrp' | 'color_contrast_net_quantity' | 'general_legibility',
+    val: string
+  ) => {
+    setData((prev) => {
+      const isModified = val !== (initialData[field]?.value || '');
+      const updated: ExtractedData = {
+        ...prev,
+        [field]: {
+          value: val,
+          confidence: 'high',
+          sourceImage: null,
+          modifiedByInspector: isModified
+        }
+      };
+      if (updated.contrast_assessment) {
+        if (field === 'color_contrast_mrp') {
+          updated.contrast_assessment = { ...updated.contrast_assessment, mrpContrast: val as ContrastLevel };
+        } else if (field === 'color_contrast_net_quantity') {
+          updated.contrast_assessment = { ...updated.contrast_assessment, netQuantityContrast: val as ContrastLevel };
+        } else if (field === 'general_legibility') {
+          updated.contrast_assessment = { ...updated.contrast_assessment, generalLegibility: val as GeneralLegibilityLevel };
+        }
+      }
+      return updated;
+    });
+  };
+
   const handleFieldChange = (key: keyof ExtractedData, newValue: string) => {
     setData((prev) => {
-      const current = prev[key];
-      const isModified = newValue.trim() !== (initialData[key]?.value || '').trim();
+      const current = prev[key] as ExtractedField | undefined;
+      const isModified = newValue.trim() !== (initialData[key] as any)?.value?.trim();
       return {
         ...prev,
         [key]: {
@@ -91,7 +164,7 @@ export function ReviewForm({
     isTextarea: boolean = false,
     helperText?: string
   ) => {
-    const field = data[key];
+    const field = data[key] as ExtractedField<string | null> | undefined;
     const val = field?.value || '';
 
     return (
@@ -241,11 +314,222 @@ export function ReviewForm({
             </div>
           </div>
 
-          {/* Card 5: Inspector Remarks */}
+          {/* Card 5: Colour Contrast & Statutory Legibility (Rule 9) */}
+          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-4">
+            <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Palette className="w-4 h-4 text-indigo-600" />
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                  5. Colour Contrast & Statutory Legibility
+                </h3>
+              </div>
+              <span className="text-[10px] text-slate-400 font-medium">Rule 9(1)(a) & 9(1)(b)</span>
+            </div>
+
+            {/* Packaging Exemption Selector (Rule 9(1) Proviso) */}
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-800 flex items-center justify-between">
+                <span>Packaging Exemption Category (Rule 9(1) Proviso)</span>
+                {data.packaging_exemption?.modifiedByInspector && (
+                  <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
+                    Modified
+                  </span>
+                )}
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleExemptionChange('NONE')}
+                  className={`px-3 py-2 rounded-lg text-left border transition text-xs ${
+                    currentExemption === 'NONE'
+                      ? 'border-indigo-600 bg-indigo-50/60 text-indigo-950 ring-1 ring-indigo-500 font-semibold'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
+                  }`}
+                >
+                  <div className="font-bold">Standard Packaging</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">Strict contrast required</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleExemptionChange('BLOWN_FORMED_MOLDED')}
+                  className={`px-3 py-2 rounded-lg text-left border transition text-xs ${
+                    currentExemption === 'BLOWN_FORMED_MOLDED'
+                      ? 'border-emerald-600 bg-emerald-50/60 text-emerald-950 ring-1 ring-emerald-500 font-semibold'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
+                  }`}
+                >
+                  <div className="font-bold">Blown / Molded / Embossed</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">Glass/plastic surface exempt</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleExemptionChange('HAND_SCRIPTED')}
+                  className={`px-3 py-2 rounded-lg text-left border transition text-xs ${
+                    currentExemption === 'HAND_SCRIPTED'
+                      ? 'border-amber-600 bg-amber-50/60 text-amber-950 ring-1 ring-amber-500 font-semibold'
+                      : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
+                  }`}
+                >
+                  <div className="font-bold">Hand-scripted Label</div>
+                  <div className="text-[10px] text-slate-500 mt-0.5">Exempt if clearly legible</div>
+                </button>
+              </div>
+
+              {currentExemption === 'BLOWN_FORMED_MOLDED' && (
+                <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start gap-2 text-xs text-emerald-900">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Statutory Exemption Active:</span> Under the Proviso to Rule 9(1), declarations blown, formed, molded, embossed, or perforated onto glass or plastic packages are exempt from distinct contrasting colour requirements.
+                  </div>
+                </div>
+              )}
+
+              {currentExemption === 'HAND_SCRIPTED' && (
+                <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2 text-xs text-amber-900">
+                  <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold">Hand-scripted Proviso:</span> Rigid colour contrast is not enforced provided handwriting is clear, unambiguous, and completely legible under Rule 9(1)(a).
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Contrast Evaluations */}
+            <div className="pt-3 border-t border-slate-100 space-y-4">
+              {/* MRP Contrast */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-800">
+                    MRP Numerals Contrast (Rule 9(1)(b))
+                  </label>
+                  {data.contrast_assessment?.mrpTextColor && data.contrast_assessment?.mrpBackgroundColor && (
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Colors: {data.contrast_assessment.mrpTextColor} on {data.contrast_assessment.mrpBackgroundColor}
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'CONSPICUOUS', label: 'Conspicuous', desc: 'High contrast (Pass)' },
+                    { id: 'LOW_CONTRAST', label: 'Low Contrast', desc: 'Faint / poor visibility' },
+                    { id: 'POOR_CONTRAST', label: 'Poor Contrast', desc: 'Blends into background' },
+                    { id: 'NOT_DETECTED', label: 'Not Detected', desc: 'MRP numerals missing' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleContrastSelect('color_contrast_mrp', opt.id)}
+                      className={`p-2 rounded-lg text-left border text-xs transition ${
+                        currentMrpContrast === opt.id
+                          ? opt.id === 'CONSPICUOUS'
+                            ? 'border-emerald-600 bg-emerald-50/60 font-semibold text-emerald-950 ring-1 ring-emerald-500'
+                            : opt.id === 'NOT_DETECTED'
+                            ? 'border-slate-600 bg-slate-100 font-semibold text-slate-900 ring-1 ring-slate-400'
+                            : 'border-rose-600 bg-rose-50/60 font-semibold text-rose-950 ring-1 ring-rose-500'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
+                      }`}
+                    >
+                      <div className="font-medium text-[11px]">{opt.label}</div>
+                      <div className="text-[9px] text-slate-500">{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Net Quantity Contrast */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-800">
+                    Net Quantity Numerals Contrast (Rule 9(1)(b))
+                  </label>
+                  {data.contrast_assessment?.netQuantityTextColor && data.contrast_assessment?.netQuantityBackgroundColor && (
+                    <span className="text-[10px] text-slate-500 font-mono">
+                      Colors: {data.contrast_assessment.netQuantityTextColor} on {data.contrast_assessment.netQuantityBackgroundColor}
+                    </span>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'CONSPICUOUS', label: 'Conspicuous', desc: 'High contrast (Pass)' },
+                    { id: 'LOW_CONTRAST', label: 'Low Contrast', desc: 'Faint / poor visibility' },
+                    { id: 'POOR_CONTRAST', label: 'Poor Contrast', desc: 'Blends into background' },
+                    { id: 'NOT_DETECTED', label: 'Not Detected', desc: 'Net qty missing' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleContrastSelect('color_contrast_net_quantity', opt.id)}
+                      className={`p-2 rounded-lg text-left border text-xs transition ${
+                        currentNetQtyContrast === opt.id
+                          ? opt.id === 'CONSPICUOUS'
+                            ? 'border-emerald-600 bg-emerald-50/60 font-semibold text-emerald-950 ring-1 ring-emerald-500'
+                            : opt.id === 'NOT_DETECTED'
+                            ? 'border-slate-600 bg-slate-100 font-semibold text-slate-900 ring-1 ring-slate-400'
+                            : 'border-rose-600 bg-rose-50/60 font-semibold text-rose-950 ring-1 ring-rose-500'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
+                      }`}
+                    >
+                      <div className="font-medium text-[11px]">{opt.label}</div>
+                      <div className="text-[9px] text-slate-500">{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* General Package Legibility */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-800">
+                    General Legibility & Prominence (Rule 9(1)(a))
+                  </label>
+                  <span className="text-[10px] text-slate-400">All mandatory declarations</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'LEGIBLE', label: 'Legible', desc: 'Sharp, distinct text' },
+                    { id: 'MODERATE_CONTRAST', label: 'Moderate', desc: 'Readable with care' },
+                    { id: 'LOW_CONTRAST', label: 'Low Contrast', desc: 'Light grey / faint' },
+                    { id: 'ILLEGIBLE', label: 'Illegible', desc: 'Unreadable declarations' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => handleContrastSelect('general_legibility', opt.id)}
+                      className={`p-2 rounded-lg text-left border text-xs transition ${
+                        currentLegibility === opt.id
+                          ? opt.id === 'LEGIBLE'
+                            ? 'border-emerald-600 bg-emerald-50/60 font-semibold text-emerald-950 ring-1 ring-emerald-500'
+                            : opt.id === 'MODERATE_CONTRAST'
+                            ? 'border-amber-600 bg-amber-50/60 font-semibold text-amber-950 ring-1 ring-amber-500'
+                            : 'border-rose-600 bg-rose-50/60 font-semibold text-rose-950 ring-1 ring-rose-500'
+                          : 'border-slate-200 hover:border-slate-300 text-slate-700 bg-white'
+                      }`}
+                    >
+                      <div className="font-medium text-[11px]">{opt.label}</div>
+                      <div className="text-[9px] text-slate-500">{opt.desc}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {data.contrast_assessment?.notes && (
+                <div className="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-start gap-1.5">
+                  <Eye className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                  <span>
+                    <strong className="text-slate-700">Vision Analysis Notes:</strong> {data.contrast_assessment.notes}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Card 6: Inspector Remarks */}
           <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                Inspector Remarks & Physical Observations
+                6. Inspector Remarks & Physical Observations
               </label>
               <span className="text-[10px] text-slate-400">Included in final certificate / notice</span>
             </div>

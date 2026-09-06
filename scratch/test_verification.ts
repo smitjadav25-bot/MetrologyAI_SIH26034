@@ -103,10 +103,81 @@ async function testPdfs() {
   console.log('Notice PDF generated. Bytes:', noticeBytes.length);
   if (noticeBytes.length < 4000) throw new Error('Notice PDF too small!');
 
-  console.log('\n>>> All rule engine and PDF tests passed successfully! <<<');
+  // === Rule LM-011 Color Contrast & Exemption Tests ===
+  console.log('\n=== TEST 4: LM-011 Low Contrast MRP Numerals (Rule 9(1)(b)) ===');
+  const lowContrastMrpData: ExtractedData = {
+    ...compliantData,
+    color_contrast_mrp: { value: 'LOW_CONTRAST', confidence: 'high', sourceImage: 'image-1' }
+  };
+  const lowMrpResult = evaluateLegalMetrologyCompliance(lowContrastMrpData);
+  const lm011LowMrp = lowMrpResult.ruleResults.find(r => r.ruleId === 'LM-011');
+  console.log('LM-011 Status:', lm011LowMrp?.status);
+  console.log('LM-011 Observed:', lm011LowMrp?.observedValue);
+  console.log('LM-011 Issue:', lm011LowMrp?.issue);
+  if (lm011LowMrp?.status !== 'FAIL') {
+    throw new Error(`Expected LM-011 FAIL for low contrast MRP, got ${lm011LowMrp?.status}`);
+  }
+
+  console.log('\n=== TEST 5: LM-011 Low Contrast Net Qty Numerals (Rule 9(1)(b)) ===');
+  const lowContrastNetQtyData: ExtractedData = {
+    ...compliantData,
+    color_contrast_net_quantity: { value: 'LOW_CONTRAST', confidence: 'high', sourceImage: 'image-1' }
+  };
+  const lowNetQtyResult = evaluateLegalMetrologyCompliance(lowContrastNetQtyData);
+  const lm011LowQty = lowNetQtyResult.ruleResults.find(r => r.ruleId === 'LM-011');
+  console.log('LM-011 Status:', lm011LowQty?.status);
+  console.log('LM-011 Observed:', lm011LowQty?.observedValue);
+  if (lm011LowQty?.status !== 'FAIL') {
+    throw new Error(`Expected LM-011 FAIL for low contrast Net Quantity, got ${lm011LowQty?.status}`);
+  }
+
+  console.log('\n=== TEST 6: LM-011 Blown/Molded Packaging Exemption (Rule 9(1) Proviso) ===');
+  const blownMoldedData: ExtractedData = {
+    ...compliantData,
+    packaging_exemption: { value: 'BLOWN_FORMED_MOLDED', confidence: 'high', sourceImage: 'image-1' },
+    color_contrast_mrp: { value: 'LOW_CONTRAST', confidence: 'high', sourceImage: 'image-1' },
+    color_contrast_net_quantity: { value: 'LOW_CONTRAST', confidence: 'high', sourceImage: 'image-1' }
+  };
+  const blownResult = evaluateLegalMetrologyCompliance(blownMoldedData);
+  const lm011Blown = blownResult.ruleResults.find(r => r.ruleId === 'LM-011');
+  console.log('LM-011 Status:', lm011Blown?.status);
+  console.log('LM-011 Observed:', lm011Blown?.observedValue);
+  if (lm011Blown?.status !== 'PASS') {
+    throw new Error(`Expected LM-011 PASS for blown/molded exemption, got ${lm011Blown?.status}`);
+  }
+
+  console.log('\n=== TEST 7: LM-011 Hand-scripted Legible Package (Rule 9(1) Proviso) ===');
+  const handScriptedData: ExtractedData = {
+    ...compliantData,
+    packaging_exemption: { value: 'HAND_SCRIPTED', confidence: 'high', sourceImage: 'image-1' },
+    general_legibility: { value: 'LEGIBLE', confidence: 'high', sourceImage: 'image-1' }
+  };
+  const handResult = evaluateLegalMetrologyCompliance(handScriptedData);
+  const lm011Hand = handResult.ruleResults.find(r => r.ruleId === 'LM-011');
+  console.log('LM-011 Status:', lm011Hand?.status);
+  console.log('LM-011 Observed:', lm011Hand?.observedValue);
+  if (lm011Hand?.status !== 'PASS') {
+    throw new Error(`Expected LM-011 PASS for hand-scripted legible, got ${lm011Hand?.status}`);
+  }
+
+  console.log('\n=== TEST 8: LM-011 Hand-scripted Illegible Package (Rule 9(1)(a)) ===');
+  const handIllegibleData: ExtractedData = {
+    ...compliantData,
+    packaging_exemption: { value: 'HAND_SCRIPTED', confidence: 'high', sourceImage: 'image-1' },
+    general_legibility: { value: 'ILLEGIBLE', confidence: 'high', sourceImage: 'image-1' }
+  };
+  const handIllegibleResult = evaluateLegalMetrologyCompliance(handIllegibleData);
+  const lm011HandIllegible = handIllegibleResult.ruleResults.find(r => r.ruleId === 'LM-011');
+  console.log('LM-011 Status:', lm011HandIllegible?.status);
+  console.log('LM-011 Observed:', lm011HandIllegible?.observedValue);
+  if (lm011HandIllegible?.status !== 'FAIL') {
+    throw new Error(`Expected LM-011 FAIL for hand-scripted illegible, got ${lm011HandIllegible?.status}`);
+  }
+
+  console.log('\n>>> All rule engine, colour contrast, and PDF tests passed successfully! <<<');
 }
 
 testPdfs().catch(err => {
-  console.error('PDF Test Error:', err);
+  console.error('Test Error:', err);
   process.exit(1);
 });

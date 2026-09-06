@@ -5,7 +5,7 @@ export interface RuleDefinition {
   ruleName: string;
   requirement: string;
   legalReference: string;
-  category: 'Product' | 'Manufacturer' | 'Origin' | 'Quantity' | 'Pricing' | 'Dates' | 'ConsumerCare' | 'Traceability';
+  category: 'Product' | 'Manufacturer' | 'Origin' | 'Quantity' | 'Pricing' | 'Dates' | 'ConsumerCare' | 'Traceability' | 'Legibility';
   severity: SeverityLevel;
   evaluate: (data: ExtractedData) => RuleResult;
 }
@@ -651,5 +651,168 @@ export const LEGAL_METROLOGY_RULES: RuleDefinition[] = [
         sourceImage: lotField?.sourceImage || null
       };
     }
+  },
+
+  // LM-011: Colour Contrast & Prominent Legibility (Rule 9)
+  {
+    ruleId: 'LM-011',
+    ruleName: 'Colour Contrast & Prominent Legibility',
+    requirement: 'Numerals of Retail Sale Price (MRP) and Net Quantity must contrast conspicuously with background (Rule 9(1)(b)); declarations must be prominent and legible (Rule 9(1)(a)).',
+    legalReference: 'Rule 9(1)(a) & Rule 9(1)(b), Legal Metrology (Packaged Commodities) Rules, 2011',
+    category: 'Legibility',
+    severity: 'MAJOR',
+    evaluate: (data: ExtractedData): RuleResult => {
+      const exemption = (data.packaging_exemption?.value || data.contrast_assessment?.exemptionType || 'NONE').toUpperCase();
+      const mrpContrast = (data.color_contrast_mrp?.value || data.contrast_assessment?.mrpContrast || 'CONSPICUOUS').toUpperCase();
+      const netQtyContrast = (data.color_contrast_net_quantity?.value || data.contrast_assessment?.netQuantityContrast || 'CONSPICUOUS').toUpperCase();
+      const generalLegibility = (data.general_legibility?.value || data.contrast_assessment?.generalLegibility || 'LEGIBLE').toUpperCase();
+
+      const sourceImg = data.mrp?.sourceImage || data.net_quantity?.sourceImage || null;
+
+      // 1. Exemption Check: Blown, Formed, Molded, Embossed or Perforated on Glass/Plastic (Rule 9(1) Proviso)
+      if (exemption === 'BLOWN_FORMED_MOLDED') {
+        return {
+          ruleId: 'LM-011',
+          ruleName: 'Colour Contrast & Prominent Legibility',
+          requirement: 'Numerals for MRP and Net Quantity must contrast conspicuously with background, except where exempted under Rule 9(1) Proviso.',
+          legalReference: 'Rule 9(1)(a) & Rule 9(1)(b) Proviso, Legal Metrology (Packaged Commodities) Rules, 2011',
+          status: 'PASS',
+          observedValue: 'Exempted (Blown / Formed / Molded / Embossed on packaging surface)',
+          explanation: 'Exemption satisfied under Rule 9(1) Proviso: Where label information is directly blown, formed, molded, embossed, or perforated onto a glass or plastic surface, a distinct contrasting colour is not strictly required.',
+          sourceImage: sourceImg
+        };
+      }
+
+      // 2. Exemption Check: Hand-scripted Declarations (Rule 9(1) Proviso)
+      if (exemption === 'HAND_SCRIPTED') {
+        if (generalLegibility === 'ILLEGIBLE') {
+          return {
+            ruleId: 'LM-011',
+            ruleName: 'Colour Contrast & Prominent Legibility',
+            requirement: 'Hand-scripted declarations must be clear, unambiguous, and perfectly legible.',
+            legalReference: 'Rule 9(1)(a) & Rule 9(1)(b) Proviso, Legal Metrology (Packaged Commodities) Rules, 2011',
+            status: 'FAIL',
+            observedValue: 'Hand-scripted (Illegible / Ambiguous)',
+            issue: 'Hand-scripted declarations are illegible or ambiguous, failing the clarity requirement of Rule 9(1) Proviso.',
+            expectedCondition: 'Hand-scripted declarations must be clear, unambiguous, and completely legible.',
+            severity: 'MAJOR',
+            sourceImage: sourceImg,
+            explanation: 'Under Rule 9(1) Proviso, hand-scripted declarations are exempted from rigid colour contrast only if handwriting is clear, unambiguous, and perfectly legible.'
+          };
+        }
+
+        return {
+          ruleId: 'LM-011',
+          ruleName: 'Colour Contrast & Prominent Legibility',
+          requirement: 'Hand-scripted declarations must be clear, unambiguous, and perfectly legible.',
+          legalReference: 'Rule 9(1)(a) & Rule 9(1)(b) Proviso, Legal Metrology (Packaged Commodities) Rules, 2011',
+          status: 'PASS',
+          observedValue: 'Exempted: Hand-scripted declaration (Clear & Legible)',
+          explanation: 'Exemption satisfied under Rule 9(1) Proviso: Declaration is in hand-script and is clear, unambiguous, and perfectly legible; rigid colour contrast is not enforced.',
+          sourceImage: sourceImg
+        };
+      }
+
+      // 3. Standard Printed Label - Core Color Contrast Check (Rule 9(1)(b))
+      const isMrpLowContrast = mrpContrast === 'LOW_CONTRAST' || mrpContrast === 'POOR_CONTRAST';
+      const isNetQtyLowContrast = netQtyContrast === 'LOW_CONTRAST' || netQtyContrast === 'POOR_CONTRAST';
+
+      if (isMrpLowContrast && isNetQtyLowContrast) {
+        return {
+          ruleId: 'LM-011',
+          ruleName: 'Colour Contrast & Prominent Legibility',
+          requirement: 'Numerals for Retail Sale Price (MRP) and Net Quantity must be printed in a colour that contrasts conspicuously with the background of the label.',
+          legalReference: 'Rule 9(1)(b), Legal Metrology (Packaged Commodities) Rules, 2011',
+          status: 'FAIL',
+          observedValue: `MRP Numerals: ${mrpContrast} | Net Qty Numerals: ${netQtyContrast}`,
+          issue: 'Rule 9(1)(b) Violation: Numerals of both Retail Sale Price (MRP) and Net Quantity do not contrast conspicuously with the label background.',
+          expectedCondition: 'Numerals for both MRP and Net Quantity must be printed in a conspicuous contrasting colour against the label background.',
+          severity: 'MAJOR',
+          sourceImage: sourceImg,
+          explanation: 'Rule 9(1)(b) explicitly mandates that numerals for Retail Sale Price (MRP) and Net Quantity must be printed, painted, or inscribed in a colour that contrasts conspicuously with the background of the label.'
+        };
+      }
+
+      if (isMrpLowContrast) {
+        return {
+          ruleId: 'LM-011',
+          ruleName: 'Colour Contrast & Prominent Legibility',
+          requirement: 'Numerals for Retail Sale Price (MRP) must contrast conspicuously with the background of the label.',
+          legalReference: 'Rule 9(1)(b), Legal Metrology (Packaged Commodities) Rules, 2011',
+          status: 'FAIL',
+          observedValue: `MRP Numerals: ${mrpContrast} (Net Qty: ${netQtyContrast})`,
+          issue: 'Rule 9(1)(b) Violation: Numerals of Retail Sale Price (MRP) do not contrast conspicuously with the label background (e.g. low-contrast font or tone-on-tone coloring).',
+          expectedCondition: 'Numerals for MRP must be printed in a colour that contrasts conspicuously with the label background.',
+          severity: 'MAJOR',
+          sourceImage: data.mrp?.sourceImage || sourceImg,
+          explanation: 'Under Rule 9(1)(b), the numerals for the Retail Sale Price must be printed, painted, or inscribed on the package in a colour that contrasts conspicuously with the background of the label.'
+        };
+      }
+
+      if (isNetQtyLowContrast) {
+        return {
+          ruleId: 'LM-011',
+          ruleName: 'Colour Contrast & Prominent Legibility',
+          requirement: 'Numerals for Net Quantity must contrast conspicuously with the background of the label.',
+          legalReference: 'Rule 9(1)(b), Legal Metrology (Packaged Commodities) Rules, 2011',
+          status: 'FAIL',
+          observedValue: `Net Qty Numerals: ${netQtyContrast} (MRP: ${mrpContrast})`,
+          issue: 'Rule 9(1)(b) Violation: Numerals of Net Quantity do not contrast conspicuously with the label background.',
+          expectedCondition: 'Numerals for Net Quantity must be printed in a colour that contrasts conspicuously with the label background.',
+          severity: 'MAJOR',
+          sourceImage: data.net_quantity?.sourceImage || sourceImg,
+          explanation: 'Under Rule 9(1)(b), the numerals for Net Quantity must be printed, painted, or inscribed on the package in a colour that contrasts conspicuously with the background of the label.'
+        };
+      }
+
+      // 4. General Legibility & Prominence Check (Rule 9(1)(a))
+      if (generalLegibility === 'ILLEGIBLE') {
+        return {
+          ruleId: 'LM-011',
+          ruleName: 'Colour Contrast & Prominent Legibility',
+          requirement: 'Every mandatory declaration on the package must be completely legible and prominent.',
+          legalReference: 'Rule 9(1)(a), Legal Metrology (Packaged Commodities) Rules, 2011',
+          status: 'FAIL',
+          observedValue: 'General Declarations: Illegible',
+          issue: 'Rule 9(1)(a) Violation: Mandatory declarations on the packaging are illegible, obscured, or lack required statutory prominence.',
+          expectedCondition: 'Every mandatory declaration must be completely legible and prominent under Rule 9(1)(a).',
+          severity: 'MAJOR',
+          sourceImage: sourceImg,
+          explanation: 'Rule 9(1)(a) requires that every declaration on the package must be completely legible and prominent. Low-contrast or faded text violates this statutory requirement.'
+        };
+      }
+
+      if (generalLegibility === 'LOW_CONTRAST') {
+        return {
+          ruleId: 'LM-011',
+          ruleName: 'Colour Contrast & Prominent Legibility',
+          requirement: 'Every mandatory declaration on the package must be completely legible and prominent.',
+          legalReference: 'Rule 9(1)(a), Legal Metrology (Packaged Commodities) Rules, 2011',
+          status: 'WARNING',
+          observedValue: 'General Declarations: Low Contrast',
+          issue: 'Rule 9(1)(a) Advisory: Mandatory declarations use low-contrast styling (e.g. light grey on white), creating readability and compliance exposure.',
+          expectedCondition: 'Ensure all mandatory label declarations use high-contrast fonts for effortless consumer legibility.',
+          severity: 'MODERATE',
+          sourceImage: sourceImg,
+          explanation: 'According to Rule 9(1)(a), every mandatory declaration on the package must be completely legible and prominent. Low-contrast fonts create major compliance exposure.'
+        };
+      }
+
+      // 5. Compliant Conspicuous Contrast
+      const details = data.contrast_assessment;
+      const note = details?.mrpTextColor ? ` (MRP: ${details.mrpTextColor}; Net Qty: ${details.netQuantityTextColor || 'conspicuous'})` : '';
+
+      return {
+        ruleId: 'LM-011',
+        ruleName: 'Colour Contrast & Prominent Legibility',
+        requirement: 'Conspicuous contrast for MRP and Net Quantity numerals; prominent legibility across all declarations.',
+        legalReference: 'Rule 9(1)(a) & Rule 9(1)(b), Legal Metrology (Packaged Commodities) Rules, 2011',
+        status: 'PASS',
+        observedValue: `Conspicuous Contrast${note}`,
+        explanation: 'Numerals for Retail Sale Price (MRP) and Net Quantity contrast conspicuously with the background of the label, and mandatory declarations satisfy statutory prominence and legibility requirements under Rule 9(1)(a) and 9(1)(b).',
+        sourceImage: sourceImg
+      };
+    }
   }
 ];
+

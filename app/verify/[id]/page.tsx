@@ -1,4 +1,5 @@
-import { getInspectionByCertificateId, getInspectionById } from '@/lib/storage';
+import { getInspectionByCertificateId, getInspectionById, getInspectionByNoticeId } from '@/lib/storage';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle2, ShieldCheck, FileText, ArrowLeft, Download, AlertTriangle } from 'lucide-react';
 
@@ -8,7 +9,7 @@ interface VerifyPageProps {
 
 export default async function VerifyCertificatePage({ params }: VerifyPageProps) {
   const { id } = await params;
-  const inspection = getInspectionByCertificateId(id) || getInspectionById(id);
+  const inspection = getInspectionByCertificateId(id) || getInspectionById(id) || getInspectionByNoticeId(id);
 
   if (!inspection) {
     return (
@@ -30,6 +31,12 @@ export default async function VerifyCertificatePage({ params }: VerifyPageProps)
         </div>
       </div>
     );
+  }
+
+  // Strictly enforce: Only 100% full PASS inspections may render the Certificate verification.
+  // Any non-pass (score < 100, WARNING, or FAIL) must redirect to the statutory Notice verification.
+  if (inspection.finalStatus !== 'PASS' || inspection.complianceScore < 100) {
+    redirect(`/verify/notice/${inspection.noticeId || inspection.inspectionId}`);
   }
 
   const isSuperseded = inspection.documentStatus === 'Superseded';

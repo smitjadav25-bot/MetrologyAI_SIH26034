@@ -7,6 +7,23 @@ export interface ExtractedField<T = string | null> {
   modifiedByInspector?: boolean;
 }
 
+export type ContrastLevel = 'CONSPICUOUS' | 'LOW_CONTRAST' | 'POOR_CONTRAST' | 'NOT_DETECTED';
+export type GeneralLegibilityLevel = 'LEGIBLE' | 'MODERATE_CONTRAST' | 'LOW_CONTRAST' | 'ILLEGIBLE';
+export type PackagingExemptionType = 'NONE' | 'BLOWN_FORMED_MOLDED' | 'HAND_SCRIPTED';
+
+export interface ColorContrastAssessment {
+  mrpContrast: ContrastLevel;
+  mrpTextColor?: string | null;
+  mrpBackgroundColor?: string | null;
+  netQuantityContrast: ContrastLevel;
+  netQuantityTextColor?: string | null;
+  netQuantityBackgroundColor?: string | null;
+  generalLegibility: GeneralLegibilityLevel;
+  exemptionType: PackagingExemptionType;
+  exemptionNotes?: string | null;
+  notes?: string | null;
+}
+
 export interface ExtractedData {
   product_name: ExtractedField;
   product_category: ExtractedField;
@@ -30,6 +47,12 @@ export interface ExtractedData {
   batch_or_lot_no: ExtractedField;
   barcode: ExtractedField;
   other_declarations: ExtractedField;
+  // Rule 9(1)(b) & Rule 9(1)(a) Color Contrast and Exemption fields
+  color_contrast_mrp?: ExtractedField<string | null>;
+  color_contrast_net_quantity?: ExtractedField<string | null>;
+  general_legibility?: ExtractedField<string | null>;
+  packaging_exemption?: ExtractedField<string | null>;
+  contrast_assessment?: ColorContrastAssessment;
 }
 
 export interface ImageQualityAssessment {

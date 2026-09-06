@@ -1,5 +1,14 @@
 import { GoogleGenAI } from '@google/genai';
-import { ExtractedData, ExtractedField, ConfidenceLevel, ImageQualityAssessment } from '@/types/inspection';
+import {
+  ExtractedData,
+  ExtractedField,
+  ConfidenceLevel,
+  ImageQualityAssessment,
+  ColorContrastAssessment,
+  ContrastLevel,
+  GeneralLegibilityLevel,
+  PackagingExemptionType
+} from '@/types/inspection';
 
 export interface VlmAnalysisResponse {
   extractedData: ExtractedData;
@@ -33,6 +42,11 @@ If text is unclear, partially visible, blurred, cut off, or unreliable, mark the
 If multiple images are provided, treat them as different views of the same product only when the user has indicated they belong to the same inspection. Combine information across images.
 For every extracted field, identify the source image label (e.g. "image-1", "image-2").
 
+Assess the visual color contrast and legibility under Rule 9 of the Legal Metrology (Packaged Commodities) Rules, 2011:
+- Rule 9(1)(b) Core Requirement: The numerals for Retail Sale Price (MRP) and Net Quantity must contrast conspicuously with the label background.
+- Rule 9(1)(a) Requirement: Every mandatory declaration must be completely legible and prominent. Low contrast (e.g. light gray on white, pale yellow on light backgrounds) creates high statutory exposure.
+- Statutory Exemptions: Check if information is directly blown, formed, molded, embossed, or perforated on glass or plastic surfaces (distinct contrasting color not required under proviso), or if written in hand-script.
+
 The final legal compliance decision will NOT be made by you. Your responsibility is visual information extraction and evidence identification only.
 
 Return ONLY a valid JSON object matching the specified schema.`;
@@ -64,6 +78,16 @@ Extract the following fields accurately as a valid JSON object:
   "batch_or_lot_no": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
   "barcode": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
   "other_declarations": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
+  "color_contrast_assessment": {
+    "mrp_contrast": "CONSPICUOUS" | "LOW_CONTRAST" | "POOR_CONTRAST",
+    "mrp_colors": string | null,
+    "net_quantity_contrast": "CONSPICUOUS" | "LOW_CONTRAST" | "POOR_CONTRAST",
+    "net_quantity_colors": string | null,
+    "general_legibility": "LEGIBLE" | "MODERATE_CONTRAST" | "LOW_CONTRAST" | "ILLEGIBLE",
+    "detected_exemption": "NONE" | "BLOWN_FORMED_MOLDED" | "HAND_SCRIPTED",
+    "exemption_notes": string | null,
+    "notes": string | null
+  },
   "image_quality": {
     "isAcceptable": boolean,
     "issues": string[],
@@ -188,7 +212,60 @@ export async function analyzeProductPackagingWithVlm(
       consumer_care_address: sanitizeField(parsed.consumer_care_address),
       batch_or_lot_no: sanitizeField(parsed.batch_or_lot_no),
       barcode: sanitizeField(parsed.barcode),
-      other_declarations: sanitizeField(parsed.other_declarations)
+      other_declarations: sanitizeField(parsed.other_declarations),
+      color_contrast_mrp: sanitizeField({
+        value: parsed.color_contrast_assessment?.mrp_contrast || 'CONSPICUOUS',
+        confidence: 'high',
+        sourceImage: null
+      }),
+      color_contrast_net_quantity: sanitizeField({
+        value: parsed.color_contrast_assessment?.net_quantity_contrast || 'CONSPICUOUS',
+        confidence: 'high',
+        sourceImage: null
+      }),
+      general_legibility: sanitizeField({
+        value: parsed.color_contrast_assessment?.general_legibility || 'LEGIBLE',
+        confidence: 'high',
+        sourceImage: null
+      }),
+      packaging_exemption: sanitizeField({
+        value: parsed.color_contrast_assessment?.detected_exemption || 'NONE',
+        confidence: 'high',
+        sourceImage: null
+      }),
+      contrast_assessment: parsed.color_contrast_assessment
+        ? {
+            mrpContrast: (['CONSPICUOUS', 'LOW_CONTRAST', 'POOR_CONTRAST', 'NOT_DETECTED'].includes(
+              String(parsed.color_contrast_assessment.mrp_contrast).toUpperCase()
+            )
+              ? String(parsed.color_contrast_assessment.mrp_contrast).toUpperCase()
+              : 'CONSPICUOUS') as ContrastLevel,
+            mrpTextColor: parsed.color_contrast_assessment.mrp_colors || null,
+            netQuantityContrast: (['CONSPICUOUS', 'LOW_CONTRAST', 'POOR_CONTRAST', 'NOT_DETECTED'].includes(
+              String(parsed.color_contrast_assessment.net_quantity_contrast).toUpperCase()
+            )
+              ? String(parsed.color_contrast_assessment.net_quantity_contrast).toUpperCase()
+              : 'CONSPICUOUS') as ContrastLevel,
+            netQuantityTextColor: parsed.color_contrast_assessment.net_quantity_colors || null,
+            generalLegibility: (['LEGIBLE', 'MODERATE_CONTRAST', 'LOW_CONTRAST', 'ILLEGIBLE'].includes(
+              String(parsed.color_contrast_assessment.general_legibility).toUpperCase()
+            )
+              ? String(parsed.color_contrast_assessment.general_legibility).toUpperCase()
+              : 'LEGIBLE') as GeneralLegibilityLevel,
+            exemptionType: (['NONE', 'BLOWN_FORMED_MOLDED', 'HAND_SCRIPTED'].includes(
+              String(parsed.color_contrast_assessment.detected_exemption).toUpperCase()
+            )
+              ? String(parsed.color_contrast_assessment.detected_exemption).toUpperCase()
+              : 'NONE') as PackagingExemptionType,
+            exemptionNotes: parsed.color_contrast_assessment.exemption_notes || null,
+            notes: parsed.color_contrast_assessment.notes || null
+          }
+        : {
+            mrpContrast: 'CONSPICUOUS',
+            netQuantityContrast: 'CONSPICUOUS',
+            generalLegibility: 'LEGIBLE',
+            exemptionType: 'NONE'
+          }
     };
 
     const imageQuality: ImageQualityAssessment = {

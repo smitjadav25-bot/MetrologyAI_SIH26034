@@ -23,7 +23,8 @@ import {
   Mail,
   BadgeCheck,
   RefreshCw,
-  X
+  X,
+  ExternalLink
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -439,7 +440,7 @@ export function AdminDashboard({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {item.finalStatus === 'PASS' && item.certificateId ? (
+                        {item.finalStatus === 'PASS' && item.complianceScore === 100 && item.certificateId ? (
                           <a
                             href={`/api/pdf/certificate/${item.certificateId}`}
                             target="_blank"
@@ -462,11 +463,17 @@ export function AdminDashboard({
                         )}
 
                         <Link
-                          href={`/verify/${item.certificateId || item.noticeId || item.inspectionId}`}
+                          href={
+                            item.finalStatus === 'PASS' && item.complianceScore === 100
+                              ? `/verify/${item.certificateId || item.inspectionId}`
+                              : `/verify/notice/${item.noticeId || item.inspectionId}`
+                          }
+                          target="_blank"
                           className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                          title="View Verification"
                         >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Verify</span>
                         </Link>
 
                         {/* Admin Delete Action Button with In-App Confirmation Modal */}

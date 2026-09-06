@@ -3,6 +3,7 @@ import {
   ExtractedData,
   ExtractedField,
   ConfidenceLevel,
+  BoundingBox,
   ImageQualityAssessment,
   ColorContrastAssessment,
   ContrastLevel,
@@ -37,10 +38,18 @@ Never create a quantity.
 Never create a date.
 Never create a batch number.
 
-If a field is not visible, return null for value, "low" for confidence, and null for sourceImage.
+If a field is not visible, return null for value, "low" for confidence, null for sourceImage, and null for box_2d.
 If text is unclear, partially visible, blurred, cut off, or unreliable, mark the field as low confidence.
 If multiple images are provided, treat them as different views of the same product only when the user has indicated they belong to the same inspection. Combine information across images.
 For every extracted field, identify the source image label (e.g. "image-1", "image-2").
+
+BOUNDING BOX LOCALIZATION:
+For every extracted field visible on an image, you MUST accurately detect and return its 2D bounding box as "box_2d": [ymin, xmin, ymax, xmax] normalized to a 0-1000 integer grid relative to that source image.
+- ymin: top coordinate (0-1000)
+- xmin: left coordinate (0-1000)
+- ymax: bottom coordinate (0-1000)
+- xmax: right coordinate (0-1000)
+The bounding box must tightly enclose the text of that declaration on the package so inspectors can immediately inspect and verify that label area when zoomed in.
 
 Assess the visual color contrast and legibility under Rule 9 of the Legal Metrology (Packaged Commodities) Rules, 2011:
 - Rule 9(1)(b) Core Requirement: The numerals for Retail Sale Price (MRP) and Net Quantity must contrast conspicuously with the label background.
@@ -54,30 +63,31 @@ Return ONLY a valid JSON object matching the specified schema.`;
 const EXTRACTION_SCHEMA_PROMPT = `Analyze the uploaded product packaging image(s) and extract the visible declarations.
 Images are labeled image-1, image-2, etc.
 
-Extract the following fields accurately as a valid JSON object:
+Extract the following fields accurately as a valid JSON object.
+Include "box_2d": [ymin, xmin, ymax, xmax] (normalized 0-1000 integer coordinates) for each visible field:
 {
-  "product_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "product_category": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "manufacturer_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "manufacturer_address": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "packer_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "packer_address": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "importer_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "importer_address": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "country_of_origin": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "net_quantity": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "unit_of_measurement": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "mrp": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "mrp_tax_declaration": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "date_of_manufacture": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "date_of_packing": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "best_before_use_by": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "consumer_care_phone": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "consumer_care_email": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "consumer_care_address": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "batch_or_lot_no": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "barcode": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
-  "other_declarations": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null },
+  "product_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "product_category": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "manufacturer_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "manufacturer_address": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "packer_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "packer_address": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "importer_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "importer_address": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "country_of_origin": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "net_quantity": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "unit_of_measurement": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "mrp": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "mrp_tax_declaration": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "date_of_manufacture": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "date_of_packing": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "best_before_use_by": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "consumer_care_phone": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "consumer_care_email": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "consumer_care_address": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "batch_or_lot_no": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "barcode": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "other_declarations": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
   "color_contrast_assessment": {
     "mrp_contrast": "CONSPICUOUS" | "LOW_CONTRAST" | "POOR_CONTRAST",
     "mrp_colors": string | null,
@@ -133,8 +143,8 @@ export async function analyzeProductPackagingWithVlm(
   });
 
   // Call the official current Gemini Multimodal Vision model
-  // We prioritize 'gemini-2.5-flash' or 'gemini-3.5-flash' based on current API availability
-  const modelNames = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.6-flash'];
+  // We prioritize 'gemini-3.6-flash' for highest speed, accuracy and 2D bounding boxes
+  const modelNames = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-3.5-flash'];
   let lastError: Error | null = null;
   let textResponse = '';
 
@@ -171,7 +181,7 @@ export async function analyzeProductPackagingWithVlm(
     const parsed = JSON.parse(raw);
 
     // Sanitize and format ExtractedData
-    const defaultField: ExtractedField = { value: null, confidence: 'low', sourceImage: null, modifiedByInspector: false };
+    const defaultField: ExtractedField = { value: null, confidence: 'low', sourceImage: null, boundingBox: null, modifiedByInspector: false };
 
     const sanitizeField = (field: unknown): ExtractedField => {
       if (!field || typeof field !== 'object') return { ...defaultField };
@@ -182,10 +192,28 @@ export async function analyzeProductPackagingWithVlm(
         ? (rawConf as ConfidenceLevel)
         : 'low';
       const src = f.sourceImage ? String(f.sourceImage) : null;
+
+      // Parse and normalize box_2d: [ymin, xmin, ymax, xmax] on 0-1000 integer grid
+      let boundingBox: BoundingBox | null = null;
+      const rawBox = f.box_2d || f.boundingBox || f.box;
+      if (Array.isArray(rawBox) && rawBox.length === 4) {
+        const coords = rawBox.map((n) => {
+          const num = Number(n);
+          if (isNaN(num)) return 0;
+          const scaled = num > 0 && num <= 1 ? num * 1000 : num;
+          return Math.max(0, Math.min(1000, Math.round(scaled)));
+        });
+        const [ymin, xmin, ymax, xmax] = coords;
+        if (ymax > ymin && xmax > xmin) {
+          boundingBox = [ymin, xmin, ymax, xmax];
+        }
+      }
+
       return {
         value: val,
         confidence: conf,
         sourceImage: src,
+        boundingBox,
         modifiedByInspector: false
       };
     };

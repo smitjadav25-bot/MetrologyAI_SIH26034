@@ -16,12 +16,14 @@ import {
   Edit3,
   ShieldAlert,
   FileCheck2,
-  ArrowRight,
   Palette,
   Eye,
   ShieldCheck,
-  Info
+  Info,
+  Crosshair,
+  ArrowRight
 } from 'lucide-react';
+import { BoundingBoxImageViewer } from '@/components/BoundingBoxImageViewer';
 
 interface ReviewFormProps {
   initialData: ExtractedData;
@@ -41,6 +43,7 @@ export function ReviewForm({
   const [data, setData] = useState<ExtractedData>(initialData);
   const [remarks, setRemarks] = useState<string>('');
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
+  const [activeFieldKey, setActiveFieldKey] = useState<keyof ExtractedData | null>(null);
 
   const currentExemption = (data.packaging_exemption?.value || data.contrast_assessment?.exemptionType || 'NONE') as PackagingExemptionType;
   const currentMrpContrast = (data.color_contrast_mrp?.value || data.contrast_assessment?.mrpContrast || 'CONSPICUOUS') as ContrastLevel;
@@ -166,14 +169,46 @@ export function ReviewForm({
   ) => {
     const field = data[key] as ExtractedField<string | null> | undefined;
     const val = field?.value || '';
+    const isFieldActive = activeFieldKey === key;
+    const hasBoundingBox = !!field?.boundingBox;
 
     return (
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold text-slate-800">
+      <div
+        className={`space-y-1.5 p-2 rounded-xl transition ${
+          isFieldActive
+            ? 'bg-amber-50/60 ring-2 ring-amber-400/80 border border-amber-300/80 shadow-xs'
+            : 'hover:bg-slate-50/50'
+        }`}
+        onClick={() => setActiveFieldKey(key)}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <label
+            htmlFor={`field-${key}`}
+            className={`text-xs font-semibold cursor-pointer ${
+              isFieldActive ? 'text-amber-950 font-bold' : 'text-slate-800'
+            }`}
+          >
             {label}
           </label>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            {hasBoundingBox && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveFieldKey(key);
+                }}
+                title="Locate label on packaging image (zooms in)"
+                className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md transition ${
+                  isFieldActive
+                    ? 'bg-amber-200 text-amber-950 border border-amber-400 shadow-xs'
+                    : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200'
+                }`}
+              >
+                <Crosshair className="w-2.5 h-2.5" />
+                <span>Locate</span>
+              </button>
+            )}
             {field?.sourceImage && (
               <span className="text-[10px] font-mono text-slate-400">
                 {field.sourceImage}
@@ -185,24 +220,32 @@ export function ReviewForm({
 
         {isTextarea ? (
           <textarea
+            id={`field-${key}`}
             rows={2}
             value={val}
+            onFocus={() => setActiveFieldKey(key)}
             onChange={(e) => handleFieldChange(key, e.target.value)}
             placeholder={placeholder}
             className={`w-full text-xs rounded-lg px-3 py-2 border transition ${
-              field?.modifiedByInspector
+              isFieldActive
+                ? 'border-amber-400 bg-white text-slate-900 focus:ring-2 focus:ring-amber-500'
+                : field?.modifiedByInspector
                 ? 'border-blue-300 bg-blue-50/20 text-slate-900 focus:ring-2 focus:ring-blue-500'
                 : 'border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-slate-900'
             }`}
           />
         ) : (
           <input
+            id={`field-${key}`}
             type="text"
             value={val}
+            onFocus={() => setActiveFieldKey(key)}
             onChange={(e) => handleFieldChange(key, e.target.value)}
             placeholder={placeholder}
             className={`w-full text-xs rounded-lg px-3 py-2 border transition ${
-              field?.modifiedByInspector
+              isFieldActive
+                ? 'border-amber-400 bg-white text-slate-900 focus:ring-2 focus:ring-amber-500'
+                : field?.modifiedByInspector
                 ? 'border-blue-300 bg-blue-50/20 text-slate-900 focus:ring-2 focus:ring-blue-500'
                 : 'border-slate-200 bg-white text-slate-900 focus:ring-2 focus:ring-slate-900'
             }`}
@@ -543,7 +586,7 @@ export function ReviewForm({
           </div>
         </div>
 
-        {/* Right Sidebar: Real Product Images Reference (5 Cols on desktop) */}
+        {/* Right Sidebar: Interactive Packaging Evidence & Bounding Boxes (5 Cols on desktop) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs sticky top-20">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
@@ -559,52 +602,21 @@ export function ReviewForm({
             </div>
 
             {images.length > 0 && (
-              <div className="space-y-3">
-                {/* Active Image Preview */}
-                <div className="relative aspect-4/3 bg-slate-950 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={images[activeImageIndex]?.url}
-                    alt={images[activeImageIndex]?.originalName || 'Product label'}
-                    className="w-full h-full object-contain"
-                  />
-                  <div className="absolute top-2 left-2 px-2.5 py-1 bg-black/70 text-white rounded-md text-[10px] font-mono backdrop-blur-xs">
-                    Image {activeImageIndex + 1} of {images.length}
-                  </div>
-                </div>
-
-                {/* Thumbnail Strip */}
-                {images.length > 1 && (
-                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                    {images.map((img, idx) => (
-                      <button
-                        key={img.id || idx}
-                        type="button"
-                        onClick={() => setActiveImageIndex(idx)}
-                        className={`w-14 h-14 rounded-lg overflow-hidden border-2 shrink-0 transition ${
-                          activeImageIndex === idx
-                            ? 'border-emerald-600 shadow-sm'
-                            : 'border-slate-200 opacity-60 hover:opacity-100'
-                        }`}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={img.url}
-                          alt={`Thumbnail ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <div className="p-3 bg-slate-50 rounded-lg text-[11px] text-slate-600 space-y-1 border border-slate-100">
-                  <p className="font-semibold text-slate-800">Inspector Verification Tip:</p>
-                  <p>
-                    Cross-examine all extracted text fields with the actual packaging images. Correct or fill in any missing declarations before proceeding to statutory rule evaluation.
-                  </p>
-                </div>
-              </div>
+              <BoundingBoxImageViewer
+                images={images}
+                activeImageIndex={activeImageIndex}
+                onSelectImageIndex={setActiveImageIndex}
+                extractedData={data}
+                activeFieldKey={activeFieldKey}
+                onSelectField={(key) => {
+                  setActiveFieldKey(key);
+                  const el = document.getElementById(`field-${key}`);
+                  if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    el.focus();
+                  }
+                }}
+              />
             )}
 
             {/* Run Compliance Check Button */}

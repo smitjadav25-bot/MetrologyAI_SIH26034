@@ -51,7 +51,7 @@ function wrapText(text: string, maxChars: number): string[] {
 
 export async function generateComplianceCertificatePdf(
   inspection: Inspection,
-  baseUrl: string = 'http://localhost:3000'
+  baseUrl?: string
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -302,7 +302,7 @@ export async function generateComplianceCertificatePdf(
 
   // Signature Block & QR Code
   const qrBoxY = 85;
-  const verifyUrl = `${baseUrl}/verify/${certId}`;
+  const verifyUrl = `${baseUrl || process.env.APP_BASE_URL || ''}/verify/${certId}`;
   try {
     const qrDataUrl = await generateQrCodeDataUrl(verifyUrl);
     const qrImageBytes = Buffer.from(qrDataUrl.split(',')[1], 'base64');
@@ -377,7 +377,7 @@ export async function generateComplianceCertificatePdf(
 
 export async function generateNonComplianceNoticePdf(
   inspection: Inspection,
-  baseUrl: string = 'http://localhost:3000'
+  baseUrl?: string
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
   const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -595,15 +595,28 @@ export async function generateNonComplianceNoticePdf(
     y -= 10;
     try {
       const firstImage = inspection.images[0];
-      const imagePath = path.join(process.cwd(), 'public', firstImage.url.replace(/^\//, ''));
-      if (fs.existsSync(imagePath)) {
-        const imageBytes = fs.readFileSync(imagePath);
-        let embeddedImg;
-        if (firstImage.url.toLowerCase().endsWith('.png')) {
-          embeddedImg = await pdfDoc.embedPng(imageBytes);
-        } else {
-          embeddedImg = await pdfDoc.embedJpg(imageBytes);
+      let imageBytes: Uint8Array | null = null;
+      let isPng = firstImage.url.toLowerCase().startsWith('data:image/png');
+
+      if (firstImage.url.startsWith('data:image/')) {
+        const commaIndex = firstImage.url.indexOf(',');
+        if (commaIndex !== -1) {
+          const metadata = firstImage.url.slice(0, commaIndex);
+          isPng = metadata.toLowerCase().startsWith('data:image/png');
+          imageBytes = Buffer.from(firstImage.url.slice(commaIndex + 1), 'base64');
         }
+      } else {
+        const imagePath = path.join(process.cwd(), 'public', firstImage.url.replace(/^\//, ''));
+        if (fs.existsSync(imagePath)) {
+          imageBytes = fs.readFileSync(imagePath);
+          isPng = firstImage.url.toLowerCase().endsWith('.png');
+        }
+      }
+
+      if (imageBytes) {
+        const embeddedImg = isPng
+          ? await pdfDoc.embedPng(imageBytes)
+          : await pdfDoc.embedJpg(imageBytes);
 
         const imgWidth = 140;
         const imgHeight = 90;
@@ -665,7 +678,7 @@ export async function generateNonComplianceNoticePdf(
 
   // QR Code & Inspector Signature Block
   const qrBoxY = 85;
-  const verifyUrl = `${baseUrl}/verify/notice/${noticeId}`;
+  const verifyUrl = `${baseUrl || process.env.APP_BASE_URL || ''}/verify/notice/${noticeId}`;
   try {
     const qrDataUrl = await generateQrCodeDataUrl(verifyUrl);
     const qrImageBytes = Buffer.from(qrDataUrl.split(',')[1], 'base64');

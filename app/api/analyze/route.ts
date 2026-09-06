@@ -1,18 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeProductPackagingWithVlm, InputImagePart } from '@/lib/gemini';
 import { getCurrentInspector } from '@/lib/auth';
-import fs from 'fs';
-import path from 'path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
+const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);
+const maxSizeBytes = 4 * 1024 * 1024;
 
-function ensureUploadsDir(): void {
-  if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+function hasValidImageSignature(buffer: Buffer, mimeType: string): boolean {
+  if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
+    return buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
   }
+
+  if (mimeType === 'image/png') {
+    return buffer.length >= 8 && buffer.subarray(0, 8).equals(
+      Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
+    );
+  }
+
+  return buffer.length >= 12 && buffer.subarray(0, 4).toString('ascii') === 'RIFF'
+    && buffer.subarray(8, 12).toString('ascii') === 'WEBP';
 }
 
 export async function POST(req: NextRequest) {
@@ -39,19 +47,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    ensureUploadsDir();
-
-    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-    const maxSizeBytes = 15 * 1024 * 1024; // 15MB
-
     const inputImages: InputImagePart[] = [];
-    const savedImagesInfo: Array<{ id: string; url: string; originalName: string; viewType?: string }> = [];
+    const savedImagesInfo: Array<{ id: string; url: string; originalName: string; uploadedAt: string; viewType?: string }> = [];
+    let totalSizeBytes = 0;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
       // Validate MIME type
-      if (!allowedMimeTypes.includes(file.type.toLowerCase())) {
+      const mimeType = file.type.toLowerCase();
+      if (!allowedMimeTypes.has(mimeType)) {
         return NextResponse.json(
           { error: `File "${file.name}" is not a supported format. Please upload JPEG, PNG, or WebP images.` },
           { status: 400 }
@@ -61,8 +66,16 @@ export async function POST(req: NextRequest) {
       // Validate file size
       if (file.size > maxSizeBytes) {
         return NextResponse.json(
-          { error: `File "${file.name}" is too large (max 15MB).` },
+          { success: false, error: `File "${file.name}" is too large (max 4MB).` },
           { status: 400 }
+        );
+      }
+
+      totalSizeBytes += file.size;
+      if (totalSizeBytes > maxSizeBytes) {
+        return NextResponse.json(
+          { success: false, error: 'The selected images are too large to process in one request (max 4MB total).' },
+          { status: 413 }
         );
       }
 
@@ -75,26 +88,28 @@ export async function POST(req: NextRequest) {
       }
 
       const buffer = Buffer.from(await file.arrayBuffer());
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const imageId = `img_${Date.now()}_${i + 1}`;
-      const filename = `${imageId}.${ext}`;
-      const filePath = path.join(UPLOADS_DIR, filename);
-
-      fs.writeFileSync(filePath, buffer);
+      if (!hasValidImageSignature(buffer, mimeType)) {
+        return NextResponse.json(
+          { success: false, error: `File "${file.name}" is not a valid ${mimeType === 'image/webp' ? 'WebP' : 'image'} file.` },
+          { status: 400 }
+        );
+      }
 
       const base64Data = buffer.toString('base64');
       const sourceLabel = `image-${i + 1}`;
 
       inputImages.push({
         data: base64Data,
-        mimeType: file.type || 'image/jpeg',
+        mimeType: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType,
         sourceLabel
       });
 
       savedImagesInfo.push({
         id: sourceLabel,
-        url: `/uploads/${filename}`,
-        originalName: file.name
+        // The image is needed by the review viewer and PDF flow, but Vercel has no durable local uploads directory.
+        url: `data:${mimeType};base64,${base64Data}`,
+        originalName: file.name,
+        uploadedAt: new Date().toISOString()
       });
     }
 
@@ -114,20 +129,27 @@ export async function POST(req: NextRequest) {
 
     if (errorMsg.includes('CONFIG_ERROR')) {
       return NextResponse.json(
-        { error: 'AI analysis is currently unavailable. Please contact the system administrator.' },
+        { success: false, error: 'GEMINI_API_KEY is not configured. Add it to the server environment.' },
         { status: 503 }
+      );
+    }
+
+    if (/401|403|authentication|api key|unauthorized/i.test(errorMsg)) {
+      return NextResponse.json(
+        { success: false, error: 'Gemini authentication failed. Check the configured GEMINI_API_KEY.' },
+        { status: 502 }
       );
     }
 
     if (errorMsg.includes('API_ERROR') || errorMsg.includes('interpretation')) {
       return NextResponse.json(
-        { error: 'The label could not be read reliably. Please upload a clearer image.' },
+        { success: false, error: 'Gemini returned an invalid analysis response. Please upload a clearer image.' },
         { status: 422 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Unable to analyze the product image. Please try again.' },
+      { success: false, error: 'Gemini analysis request failed. Please try again.' },
       { status: 500 }
     );
   }

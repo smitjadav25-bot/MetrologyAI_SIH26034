@@ -20,10 +20,10 @@ export async function validateImageQuality(file: File): Promise<ImageValidationR
     };
   }
 
-  if (file.size > 15 * 1024 * 1024) {
+  if (file.size > 4 * 1024 * 1024) {
     return {
       isValid: false,
-      errorMessage: 'File size exceeds maximum allowed limit (15MB).'
+      errorMessage: 'File size exceeds maximum allowed limit (4MB for production processing).'
     };
   }
 

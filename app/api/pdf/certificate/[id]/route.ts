@@ -23,9 +23,7 @@ export async function GET(
       return NextResponse.redirect(new URL(`/api/pdf/notice/${noticeId}`, req.url));
     }
 
-    const protocol = req.headers.get('x-forwarded-proto') || 'http';
-    const host = req.headers.get('host') || 'localhost:3000';
-    const baseUrl = `${protocol}://${host}`;
+    const baseUrl = req.nextUrl.origin;
 
     const pdfBytes = await generateComplianceCertificatePdf(inspection, baseUrl);
 

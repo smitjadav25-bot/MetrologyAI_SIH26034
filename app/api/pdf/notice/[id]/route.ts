@@ -17,9 +17,7 @@ export async function GET(
       return NextResponse.json({ error: 'Notice not found' }, { status: 404 });
     }
 
-    const protocol = req.headers.get('x-forwarded-proto') || 'http';
-    const host = req.headers.get('host') || 'localhost:3000';
-    const baseUrl = `${protocol}://${host}`;
+    const baseUrl = req.nextUrl.origin;
 
     const pdfBytes = await generateNonComplianceNoticePdf(inspection, baseUrl);
 

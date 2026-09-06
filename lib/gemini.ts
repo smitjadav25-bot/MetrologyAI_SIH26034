@@ -142,9 +142,8 @@ export async function analyzeProductPackagingWithVlm(
     text: EXTRACTION_SCHEMA_PROMPT
   });
 
-  // Call the official current Gemini Multimodal Vision model
-  // We prioritize 'gemini-3.6-flash' for highest speed, accuracy and 2D bounding boxes
-  const modelNames = ['gemini-3.6-flash', 'gemini-2.5-flash', 'gemini-3.5-flash'];
+  // Keep the model explicit so production failures are actionable instead of hidden by invalid fallbacks.
+  const modelNames = ['gemini-3.6-flash'];
   let lastError: Error | null = null;
   let textResponse = '';
 
@@ -177,7 +176,8 @@ export async function analyzeProductPackagingWithVlm(
 
   // Parse JSON response cleanly
   try {
-    const raw = textResponse.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+    const fenced = textResponse.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+    const raw = (fenced ? fenced[1] : textResponse).trim();
     const parsed = JSON.parse(raw);
 
     // Sanitize and format ExtractedData

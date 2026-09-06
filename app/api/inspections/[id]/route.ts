@@ -1,9 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getInspectionById, saveInspection, generateNextId } from '@/lib/storage';
+import { getInspectionById, saveInspection, generateNextId, deleteInspection } from '@/lib/storage';
 import { evaluateLegalMetrologyCompliance } from '@/lib/compliance';
+import { getCurrentInspector } from '@/lib/auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const inspector = await getCurrentInspector();
+    if (!inspector || inspector.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized. Admin privilege required to delete inspections.' }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const cleanId = decodeURIComponent(id || '').trim();
+    const deleted = deleteInspection(cleanId) || deleteInspection(id);
+    if (!deleted) {
+      return NextResponse.json({ error: `Inspection ${cleanId} not found.` }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: `Inspection ${cleanId} deleted successfully.` });
+  } catch (err) {
+    console.error('Error deleting inspection:', err);
+    return NextResponse.json({ error: 'Failed to delete inspection' }, { status: 500 });
+  }
+}
 
 export async function GET(
   req: NextRequest,

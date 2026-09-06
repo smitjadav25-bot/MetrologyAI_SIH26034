@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/Navbar';
+import { AuthProvider } from '@/components/AuthProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -29,8 +30,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
-        <Navbar />
-        <main className="flex-1">{children}</main>
+        <AuthProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+        </AuthProvider>
         <footer className="border-t border-slate-200 bg-white py-4 px-6 text-center text-xs text-slate-500">
           <p>
             MetrologyAI — Automated Legal Metrology Inspection System. Final legal/enforcement decisions remain with the competent authority.

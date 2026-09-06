@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getCurrentInspector } from '@/lib/auth';
 import { getInspections } from '@/lib/storage';
 import {
   PlusCircle,
@@ -15,7 +17,23 @@ import {
 export const dynamic = 'force-dynamic';
 
 export default async function HistoryPage() {
-  const inspections = getInspections();
+  const inspector = await getCurrentInspector();
+  if (!inspector) {
+    redirect('/login?redirect=/history');
+  }
+
+  const all = getInspections();
+  const inspections = inspector.role === 'ADMIN'
+    ? all
+    : all.filter(i => {
+        const insp = i.inspector;
+        if (!insp) return false;
+        return (
+          insp.id === inspector.officerId ||
+          insp.id === inspector.id ||
+          (insp.name && insp.name.toLowerCase() === inspector.name.toLowerCase())
+        );
+      });
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-slate-50 py-8 px-4 sm:px-6">

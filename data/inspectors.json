@@ -1,0 +1,35 @@
+[
+  {
+    "id": "admin-smit-001",
+    "officerId": "ADMIN-001",
+    "name": "smit",
+    "email": "smit@admin.metrology.gov.in",
+    "passwordHash": "$2b$10$XTquPOs97pZxVFHbcIV/zuHorc0aKM1wo6QR347/MBf1WMP0HkRZO",
+    "designation": "Chief Administrator",
+    "jurisdiction": "Central Metrology Directorate",
+    "role": "ADMIN",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "ins-seed-001",
+    "officerId": "INS-402",
+    "name": "Inspector S. K. Verma",
+    "email": "officer@metrology.gov.in",
+    "passwordHash": "$2b$10$Y21CJkc5Ig0tmp6NYT2ot.QQgoIvLp5uOHN9XoDTa560QnFMFrwD.",
+    "designation": "Legal Metrology Inspector",
+    "jurisdiction": "Zone-1 Enforcement Division",
+    "role": "INSPECTOR",
+    "createdAt": "2026-01-01T00:00:00.000Z"
+  },
+  {
+    "id": "ins-1788689999286-y8cz5",
+    "officerId": "INS-779",
+    "name": "Inspector Vikram Patil",
+    "email": "vikram.patil@metrology.gov.in",
+    "passwordHash": "$2b$10$UyZ4hb5sCGWkd0w68J5Lde0qlj3ygRF26XnLgKGv4GXR3Zg9yyW9S",
+    "designation": "Assistant Controller Legal Metrology",
+    "jurisdiction": "Western Division Flying Squad",
+    "role": "INSPECTOR",
+    "createdAt": "2026-09-06T10:19:59.286Z"
+  }
+]

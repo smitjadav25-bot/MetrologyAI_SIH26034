@@ -17,6 +17,12 @@ export async function GET(
       return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
     }
 
+    // Strictly enforce: if the inspection failed, has a notice, or score is not 100, redirect to Notice PDF
+    if (inspection.complianceScore < 100 || inspection.finalStatus !== 'PASS' || !inspection.certificateId) {
+      const noticeId = inspection.noticeId || inspection.inspectionId;
+      return NextResponse.redirect(new URL(`/api/pdf/notice/${noticeId}`, req.url));
+    }
+
     const protocol = req.headers.get('x-forwarded-proto') || 'http';
     const host = req.headers.get('host') || 'localhost:3000';
     const baseUrl = `${protocol}://${host}`;

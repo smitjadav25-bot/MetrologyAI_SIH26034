@@ -94,24 +94,36 @@ export async function generateComplianceCertificatePdf(
 
   // Certificate Status Pill
   const certId = inspection.certificateId || `CERT-${inspection.inspectionId}`;
+  const isFullPass = inspection.finalStatus === 'PASS' && inspection.complianceScore === 100;
+  const statusLabel = isFullPass
+    ? 'STATUS: PASS'
+    : inspection.finalStatus === 'WARNING'
+      ? 'STATUS: ADVISORY'
+      : 'STATUS: NON-COMPLIANT';
+  const pillColor = isFullPass
+    ? SUCCESS_GREEN
+    : inspection.finalStatus === 'WARNING'
+      ? WARNING_AMBER
+      : DANGER_RED;
+
   page.drawRectangle({
-    x: width - margin - 150,
+    x: width - margin - 155,
     y: height - 85,
-    width: 135,
+    width: 140,
     height: 30,
-    color: SUCCESS_GREEN
+    color: pillColor
   });
 
-  page.drawText('STATUS: PASS', {
-    x: width - margin - 138,
+  page.drawText(statusLabel, {
+    x: width - margin - 145,
     y: height - 68,
-    size: 11,
+    size: 9.5,
     font: fontBold,
     color: WHITE
   });
 
   page.drawText(`Score: ${inspection.complianceScore}/100`, {
-    x: width - margin - 138,
+    x: width - margin - 145,
     y: height - 80,
     size: 8.5,
     font: fontRegular,

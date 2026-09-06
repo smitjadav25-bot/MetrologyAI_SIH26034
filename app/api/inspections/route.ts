@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getInspections, saveInspection, generateNextId } from '@/lib/storage';
+import { getInspections, saveInspection, generateNextId, deleteInspection } from '@/lib/storage';
 import { evaluateLegalMetrologyCompliance } from '@/lib/compliance';
+import { getCurrentInspector } from '@/lib/auth';
 import { Inspection } from '@/types/inspection';
 
 export const runtime = 'nodejs';
@@ -8,8 +9,30 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const inspector = await getCurrentInspector();
+    if (!inspector) {
+      return NextResponse.json({ error: 'Unauthorized. Inspector session required.' }, { status: 401 });
+    }
+
     const list = getInspections();
-    return NextResponse.json({ inspections: list });
+
+    // If ADMIN, return all inspections across the entire platform
+    if (inspector.role === 'ADMIN') {
+      return NextResponse.json({ inspections: list });
+    }
+
+    // If INSPECTOR, isolate to their own inspections only
+    const filtered = list.filter(i => {
+      const insp = i.inspector;
+      if (!insp) return false;
+      return (
+        insp.id === inspector.officerId ||
+        insp.id === inspector.id ||
+        (insp.name && insp.name.toLowerCase() === inspector.name.toLowerCase())
+      );
+    });
+
+    return NextResponse.json({ inspections: filtered });
   } catch (err) {
     console.error('Failed to get inspections:', err);
     return NextResponse.json({ error: 'Failed to retrieve inspections' }, { status: 500 });
@@ -18,12 +41,16 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const currentInspector = await getCurrentInspector();
+    if (!currentInspector) {
+      return NextResponse.json({ error: 'Unauthorized. Inspector session required.' }, { status: 401 });
+    }
+
     const body = await req.json();
     const {
       reviewedData,
       extractedData,
       images,
-      inspector,
       inspectorRemarks
     } = body;
 
@@ -38,7 +65,8 @@ export async function POST(req: NextRequest) {
     let certificateId: string | undefined = undefined;
     let noticeId: string | undefined = undefined;
 
-    if (compliance.finalStatus === 'PASS') {
+    // Strict statutory rule: ONLY 100% score with zero violations can receive a Certificate
+    if (compliance.complianceScore === 100 && compliance.finalStatus === 'PASS') {
       certificateId = generateNextId('CERT');
     } else {
       noticeId = generateNextId('NOTICE');
@@ -47,11 +75,11 @@ export async function POST(req: NextRequest) {
     const newInspection: Inspection = {
       inspectionId,
       createdAt: new Date().toISOString(),
-      inspector: inspector || {
-        id: 'INS-OFFICER-402',
-        name: 'Inspector S. K. Verma',
-        designation: 'Legal Metrology Inspector',
-        jurisdiction: 'Zone-1 Enforcement Division'
+      inspector: {
+        id: currentInspector.officerId || currentInspector.id,
+        name: currentInspector.name,
+        designation: currentInspector.designation,
+        jurisdiction: currentInspector.jurisdiction
       },
       images: images || [],
       extractedData: extractedData || reviewedData,
@@ -71,5 +99,41 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('Failed to save inspection:', err);
     return NextResponse.json({ error: 'Failed to save inspection assessment' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const currentInspector = await getCurrentInspector();
+    if (!currentInspector || currentInspector.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized. Admin privilege required.' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    let id = searchParams.get('id');
+
+    if (!id) {
+      try {
+        const body = await req.json();
+        id = body?.id;
+      } catch {
+        // no body
+      }
+    }
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing inspection id parameter.' }, { status: 400 });
+    }
+
+    const cleanId = decodeURIComponent(id).trim();
+    const deleted = deleteInspection(cleanId) || deleteInspection(id);
+    if (!deleted) {
+      return NextResponse.json({ error: `Inspection ${cleanId} not found.` }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, message: `Inspection ${cleanId} deleted successfully.` });
+  } catch (err) {
+    console.error('Failed to delete inspection via collection endpoint:', err);
+    return NextResponse.json({ error: 'Failed to delete inspection' }, { status: 500 });
   }
 }

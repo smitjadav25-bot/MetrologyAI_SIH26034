@@ -11,25 +11,14 @@
     "createdAt": "2026-01-01T00:00:00.000Z"
   },
   {
-    "id": "ins-seed-001",
-    "officerId": "INS-402",
-    "name": "Inspector S. K. Verma",
-    "email": "officer@metrology.gov.in",
-    "passwordHash": "$2b$10$Y21CJkc5Ig0tmp6NYT2ot.QQgoIvLp5uOHN9XoDTa560QnFMFrwD.",
+    "id": "ins-1788694593899-z7i4s",
+    "officerId": "INS-001",
+    "name": "dhruv",
+    "email": "dhruvkotak@gmail.com",
+    "passwordHash": "$2b$10$yKRmeelr1HQA/DKyR0LvzefDlAU1xXDHv588AnCePKF2fBgtqCiQe",
     "designation": "Legal Metrology Inspector",
-    "jurisdiction": "Zone-1 Enforcement Division",
+    "jurisdiction": "Zone-2 Enforcement Directorate",
     "role": "INSPECTOR",
-    "createdAt": "2026-01-01T00:00:00.000Z"
-  },
-  {
-    "id": "ins-1788689999286-y8cz5",
-    "officerId": "INS-779",
-    "name": "Inspector Vikram Patil",
-    "email": "vikram.patil@metrology.gov.in",
-    "passwordHash": "$2b$10$UyZ4hb5sCGWkd0w68J5Lde0qlj3ygRF26XnLgKGv4GXR3Zg9yyW9S",
-    "designation": "Assistant Controller Legal Metrology",
-    "jurisdiction": "Western Division Flying Squad",
-    "role": "INSPECTOR",
-    "createdAt": "2026-09-06T10:19:59.286Z"
+    "createdAt": "2026-09-06T11:36:33.899Z"
   }
 ]

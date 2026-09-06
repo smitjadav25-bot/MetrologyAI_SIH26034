@@ -1,5 +1,698 @@
 [
   {
+    "inspectionId": "INS-2026-0015",
+    "createdAt": "2026-09-06T13:20:03.738Z",
+    "inspector": {
+      "id": "INS-001",
+      "name": "dhruv",
+      "designation": "Legal Metrology Inspector",
+      "jurisdiction": "Zone-2 Enforcement Directorate"
+    },
+    "images": [
+      {
+        "id": "image-1",
+        "url": "/uploads/img_1788700593389_1.jpeg",
+        "originalName": "WhatsApp Image 2026-09-06 at 10.14.23.jpeg"
+      }
+    ],
+    "extractedData": {
+      "product_name": {
+        "value": "Balaji Wafers Farali Chevdo",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          149,
+          592,
+          426,
+          905
+        ],
+        "modifiedByInspector": false
+      },
+      "product_category": {
+        "value": "NAMKEEN & SAVOURIES",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          221,
+          16,
+          237,
+          137
+        ],
+        "modifiedByInspector": false
+      },
+      "manufacturer_name": {
+        "value": "BALAJI WAFERS PRIVATE LIMITED",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          462,
+          674,
+          477,
+          876
+        ],
+        "modifiedByInspector": false
+      },
+      "manufacturer_address": {
+        "value": "SURVEY NO. 19, VAJDI (VAD), KALAWAD ROAD, LODHIKA, DIST. RAJKOT-360021, GUJARAT, INDIA",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          477,
+          555,
+          521,
+          911
+        ],
+        "modifiedByInspector": false
+      },
+      "packer_name": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "packer_address": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "importer_name": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "importer_address": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "country_of_origin": {
+        "value": "INDIA",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          250,
+          31,
+          263,
+          55
+        ],
+        "modifiedByInspector": false
+      },
+      "net_quantity": {
+        "value": "235",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          583,
+          252,
+          606,
+          321
+        ],
+        "modifiedByInspector": false
+      },
+      "unit_of_measurement": {
+        "value": "g",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          583,
+          321,
+          606,
+          344
+        ],
+        "modifiedByInspector": false
+      },
+      "mrp": {
+        "value": "45.00",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          671,
+          251,
+          690,
+          321
+        ],
+        "modifiedByInspector": false
+      },
+      "mrp_tax_declaration": {
+        "value": "INCL. OF ALL TAXES",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          691,
+          59,
+          712,
+          175
+        ],
+        "modifiedByInspector": false
+      },
+      "date_of_manufacture": {
+        "value": "30/06/24",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          601,
+          253,
+          622,
+          381
+        ],
+        "modifiedByInspector": false
+      },
+      "date_of_packing": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "best_before_use_by": {
+        "value": "29/09/24",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          620,
+          253,
+          640,
+          381
+        ],
+        "modifiedByInspector": false
+      },
+      "consumer_care_phone": {
+        "value": "+91-7069014141",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          691,
+          574,
+          712,
+          708
+        ],
+        "modifiedByInspector": false
+      },
+      "consumer_care_email": {
+        "value": "CONTACT@BALAJIWAFERS.COM",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          701,
+          808,
+          723,
+          915
+        ],
+        "modifiedByInspector": false
+      },
+      "consumer_care_address": {
+        "value": "REGISTERED OFFICE ADDRESS",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          671,
+          567,
+          689,
+          786
+        ],
+        "modifiedByInspector": false
+      },
+      "batch_or_lot_no": {
+        "value": "12/U1D13S3",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          638,
+          252,
+          658,
+          411
+        ],
+        "modifiedByInspector": false
+      },
+      "barcode": {
+        "value": "8906012500320",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          744,
+          57,
+          804,
+          235
+        ],
+        "modifiedByInspector": false
+      },
+      "other_declarations": {
+        "value": "Unit Sale Price: 0.19 PER g, fssai Lic. No. 10012021000039",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          657,
+          252,
+          674,
+          385
+        ],
+        "modifiedByInspector": false
+      },
+      "color_contrast_mrp": {
+        "value": "CONSPICUOUS",
+        "confidence": "high",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "color_contrast_net_quantity": {
+        "value": "CONSPICUOUS",
+        "confidence": "high",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "general_legibility": {
+        "value": "LEGIBLE",
+        "confidence": "high",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "packaging_exemption": {
+        "value": "NONE",
+        "confidence": "high",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "contrast_assessment": {
+        "mrpContrast": "CONSPICUOUS",
+        "mrpTextColor": "Black text on White background panel",
+        "netQuantityContrast": "CONSPICUOUS",
+        "netQuantityTextColor": "Black text on White background panel",
+        "generalLegibility": "LEGIBLE",
+        "exemptionType": "NONE",
+        "exemptionNotes": null,
+        "notes": "Mandatory declarations are printed clearly in black ink over a dedicated white label panel, providing strong color contrast."
+      }
+    },
+    "reviewedData": {
+      "product_name": {
+        "value": "Balaji Wafers Farali Chevdo",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          149,
+          592,
+          426,
+          905
+        ],
+        "modifiedByInspector": false
+      },
+      "product_category": {
+        "value": "NAMKEEN & SAVOURIES",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          221,
+          16,
+          237,
+          137
+        ],
+        "modifiedByInspector": false
+      },
+      "manufacturer_name": {
+        "value": "BALAJI WAFERS PRIVATE LIMITED",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          462,
+          674,
+          477,
+          876
+        ],
+        "modifiedByInspector": false
+      },
+      "manufacturer_address": {
+        "value": "SURVEY NO. 19, VAJDI (VAD), KALAWAD ROAD, LODHIKA, DIST. RAJKOT-360021, GUJARAT, INDIA",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          477,
+          555,
+          521,
+          911
+        ],
+        "modifiedByInspector": false
+      },
+      "packer_name": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "packer_address": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "importer_name": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "importer_address": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "country_of_origin": {
+        "value": "INDIA",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          250,
+          31,
+          263,
+          55
+        ],
+        "modifiedByInspector": false
+      },
+      "net_quantity": {
+        "value": "235",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          583,
+          252,
+          606,
+          321
+        ],
+        "modifiedByInspector": false
+      },
+      "unit_of_measurement": {
+        "value": "g",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          583,
+          321,
+          606,
+          344
+        ],
+        "modifiedByInspector": false
+      },
+      "mrp": {
+        "value": "45.00",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          671,
+          251,
+          690,
+          321
+        ],
+        "modifiedByInspector": false
+      },
+      "mrp_tax_declaration": {
+        "value": "INCL. OF ALL TAXES",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          691,
+          59,
+          712,
+          175
+        ],
+        "modifiedByInspector": false
+      },
+      "date_of_manufacture": {
+        "value": "30/06/24",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          601,
+          253,
+          622,
+          381
+        ],
+        "modifiedByInspector": false
+      },
+      "date_of_packing": {
+        "value": null,
+        "confidence": "low",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "best_before_use_by": {
+        "value": "29/09/24",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          620,
+          253,
+          640,
+          381
+        ],
+        "modifiedByInspector": false
+      },
+      "consumer_care_phone": {
+        "value": "+91-7069014141",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          691,
+          574,
+          712,
+          708
+        ],
+        "modifiedByInspector": false
+      },
+      "consumer_care_email": {
+        "value": "CONTACT@BALAJIWAFERS.COM",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          701,
+          808,
+          723,
+          915
+        ],
+        "modifiedByInspector": false
+      },
+      "consumer_care_address": {
+        "value": "REGISTERED OFFICE ADDRESS",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          671,
+          567,
+          689,
+          786
+        ],
+        "modifiedByInspector": false
+      },
+      "batch_or_lot_no": {
+        "value": "12/U1D13S3",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          638,
+          252,
+          658,
+          411
+        ],
+        "modifiedByInspector": false
+      },
+      "barcode": {
+        "value": "8906012500320",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          744,
+          57,
+          804,
+          235
+        ],
+        "modifiedByInspector": false
+      },
+      "other_declarations": {
+        "value": "Unit Sale Price: 0.19 PER g, fssai Lic. No. 10012021000039",
+        "confidence": "high",
+        "sourceImage": "image-1",
+        "boundingBox": [
+          657,
+          252,
+          674,
+          385
+        ],
+        "modifiedByInspector": false
+      },
+      "color_contrast_mrp": {
+        "value": "CONSPICUOUS",
+        "confidence": "high",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "color_contrast_net_quantity": {
+        "value": "CONSPICUOUS",
+        "confidence": "high",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "general_legibility": {
+        "value": "LEGIBLE",
+        "confidence": "high",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "packaging_exemption": {
+        "value": "NONE",
+        "confidence": "high",
+        "sourceImage": null,
+        "boundingBox": null,
+        "modifiedByInspector": false
+      },
+      "contrast_assessment": {
+        "mrpContrast": "CONSPICUOUS",
+        "mrpTextColor": "Black text on White background panel",
+        "netQuantityContrast": "CONSPICUOUS",
+        "netQuantityTextColor": "Black text on White background panel",
+        "generalLegibility": "LEGIBLE",
+        "exemptionType": "NONE",
+        "exemptionNotes": null,
+        "notes": "Mandatory declarations are printed clearly in black ink over a dedicated white label panel, providing strong color contrast."
+      }
+    },
+    "ruleResults": [
+      {
+        "ruleId": "LM-001",
+        "ruleName": "Product Name / Generic Identity Declaration",
+        "requirement": "Generic or common name of the commodity must be declared conspicuously.",
+        "legalReference": "Rule 6(1)(a), Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "Balaji Wafers Farali Chevdo",
+        "explanation": "Generic product identity is clearly declared as \"Balaji Wafers Farali Chevdo\".",
+        "sourceImage": "image-1"
+      },
+      {
+        "ruleId": "LM-002",
+        "ruleName": "Manufacturer Name and Complete Address",
+        "requirement": "Manufacturer name and complete geographic address declared.",
+        "legalReference": "Rule 6(1)(b), Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "BALAJI WAFERS PRIVATE LIMITED | SURVEY NO. 19, VAJDI (VAD), KALAWAD ROAD, LODHIKA, DIST. RAJKOT-360021, GUJARAT, INDIA",
+        "explanation": "Manufacturer \"BALAJI WAFERS PRIVATE LIMITED\" and address are declared in accordance with Rule 6(1)(b).",
+        "sourceImage": "image-1"
+      },
+      {
+        "ruleId": "LM-003",
+        "ruleName": "Packer or Importer Declaration (Where Applicable)",
+        "requirement": "Packer or importer details when applicable.",
+        "legalReference": "Rule 6(1)(b) proviso, Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "Manufacturer packed directly (Domestic)",
+        "explanation": "Direct domestic manufacture and packing; separate packer or importer not required.",
+        "sourceImage": null
+      },
+      {
+        "ruleId": "LM-004",
+        "ruleName": "Country of Origin Declaration",
+        "requirement": "Country of origin explicitly declared.",
+        "legalReference": "Rule 6(10), Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "INDIA",
+        "explanation": "Country of origin is declared as \"INDIA\".",
+        "sourceImage": "image-1"
+      },
+      {
+        "ruleId": "LM-005",
+        "ruleName": "Net Quantity Declaration and Standard Unit of Measurement",
+        "requirement": "Net quantity declared in approved standard unit.",
+        "legalReference": "Rule 6(1)(c), Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "235 g",
+        "explanation": "Net quantity correctly declared with standard metric unit as \"235 g\".",
+        "sourceImage": "image-1"
+      },
+      {
+        "ruleId": "LM-006",
+        "ruleName": "Maximum Retail Price (MRP) Declaration",
+        "requirement": "MRP declared in proper format inclusive of taxes.",
+        "legalReference": "Rule 6(1)(e), Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "45.00 (INCL. OF ALL TAXES)",
+        "explanation": "MRP is declared as \"45.00\" with statutory tax inclusiveness confirmation.",
+        "sourceImage": "image-1"
+      },
+      {
+        "ruleId": "LM-007",
+        "ruleName": "Consumer Care / Grievance Redressal Mechanism",
+        "requirement": "Consumer care contact details provided.",
+        "legalReference": "Rule 6(1)(n), Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "Tel: +91-7069014141 | Email: CONTACT@BALAJIWAFERS.COM | Address: REGISTERED OFFICE ADDRESS",
+        "explanation": "Consumer care contact channels (telephone, email, address) are declared.",
+        "sourceImage": "image-1"
+      },
+      {
+        "ruleId": "LM-008",
+        "ruleName": "Date of Manufacture or Pre-packing Declaration",
+        "requirement": "Month and year of manufacture or packing clearly stated.",
+        "legalReference": "Rule 6(1)(d), Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "Mfg: 30/06/24",
+        "explanation": "Statutory packing/manufacturing date declared as \"30/06/24\".",
+        "sourceImage": "image-1"
+      },
+      {
+        "ruleId": "LM-009",
+        "ruleName": "Best Before / Use-by / Expiry Date",
+        "requirement": "Best before or expiry declaration.",
+        "legalReference": "Rule 6(1)(d) proviso, Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "29/09/24",
+        "explanation": "Expiry / Best-before period clearly declared as \"29/09/24\".",
+        "sourceImage": "image-1"
+      },
+      {
+        "ruleId": "LM-010",
+        "ruleName": "Batch or Lot Number for Traceability",
+        "requirement": "Lot or batch number declared.",
+        "legalReference": "Rule 6(1)(g), Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "12/U1D13S3",
+        "explanation": "Traceability lot/batch code declared as \"12/U1D13S3\".",
+        "sourceImage": "image-1"
+      },
+      {
+        "ruleId": "LM-011",
+        "ruleName": "Colour Contrast & Prominent Legibility",
+        "requirement": "Conspicuous contrast for MRP and Net Quantity numerals; prominent legibility across all declarations.",
+        "legalReference": "Rule 9(1)(a) & Rule 9(1)(b), Legal Metrology (Packaged Commodities) Rules, 2011",
+        "status": "PASS",
+        "observedValue": "Conspicuous Contrast (MRP: Black text on White background panel; Net Qty: Black text on White background panel)",
+        "explanation": "Numerals for Retail Sale Price (MRP) and Net Quantity contrast conspicuously with the background of the label, and mandatory declarations satisfy statutory prominence and legibility requirements under Rule 9(1)(a) and 9(1)(b).",
+        "sourceImage": "image-1"
+      }
+    ],
+    "complianceScore": 100,
+    "finalStatus": "PASS",
+    "inspectorRemarks": "",
+    "recommendedAction": "Packaging declarations fully satisfy evaluated Legal Metrology (Packaged Commodities) Rules, 2011. Fit for compliance certification.",
+    "certificateId": "CERT-2026-0002",
+    "documentStatus": "Active"
+  },
+  {
     "inspectionId": "INS-2026-0014",
     "createdAt": "2026-09-06T12:29:34.678Z",
     "inspector": {

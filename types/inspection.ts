@@ -1,9 +1,13 @@
 export type ConfidenceLevel = 'high' | 'medium' | 'low';
 
+// [ymin, xmin, ymax, xmax] in 0-1000 normalized integer coordinates standard for Gemini Vision
+export type BoundingBox = [number, number, number, number];
+
 export interface ExtractedField<T = string | null> {
   value: T;
   confidence: ConfidenceLevel;
   sourceImage: string | null;
+  boundingBox?: BoundingBox | null;
   modifiedByInspector?: boolean;
 }
 

@@ -31,5 +31,27 @@
     "jurisdiction": "Zone-2 EnforZone-1 Northern Directoratecement Directorate",
     "role": "INSPECTOR",
     "createdAt": "2026-09-06T12:16:10.387Z"
+  },
+  {
+    "id": "ins-1788724899807-mhgzb",
+    "officerId": "INS-005",
+    "name": "Smit Jadav",
+    "email": "smitjadav25@gmail.com",
+    "passwordHash": "$2b$10$AzRcgeNQfvmlS0JDpQ9jfutPZiKhSz92uim/OqMsRbxFdA/h/Jwyy",
+    "designation": "Legal Metrology Inspector",
+    "jurisdiction": "anand",
+    "role": "INSPECTOR",
+    "createdAt": "2026-09-06T20:01:39.807Z"
+  },
+  {
+    "id": "ins-1788724937237-ajjqj",
+    "officerId": "INS-007",
+    "name": "Smit Jadav",
+    "email": "smit@gmail.com",
+    "passwordHash": "$2b$10$y7r/g6sc1/j4/wMrRHnMF.s/OI602wZh257GlIu2g3M4Ds23OXLLW",
+    "designation": "Legal Metrology Inspector",
+    "jurisdiction": "anand",
+    "role": "INSPECTOR",
+    "createdAt": "2026-09-06T20:02:17.237Z"
   }
 ]

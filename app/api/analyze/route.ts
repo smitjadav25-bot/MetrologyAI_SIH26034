@@ -79,14 +79,6 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Basic image sanity check (not OCR!): file size must be at least 4KB to contain readable text
-      if (file.size < 4096) {
-        return NextResponse.json(
-          { error: 'Image quality is too low to reliably inspect the label. Please provide a higher resolution photo.' },
-          { status: 400 }
-        );
-      }
-
       const buffer = Buffer.from(await file.arrayBuffer());
       if (!hasValidImageSignature(buffer, mimeType)) {
         return NextResponse.json(
@@ -114,10 +106,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Pass real product images to Gemini VLM
+    console.log('[MetrologyAI] Image received', { count: inputImages.length, totalSizeBytes });
+    console.log('[MetrologyAI] Sending images to Gemini', { mimeTypes: inputImages.map((image) => image.mimeType) });
     const vlmResult = await analyzeProductPackagingWithVlm(inputImages);
+    console.log('[MetrologyAI] Structured analysis validated');
 
     return NextResponse.json({
       success: true,
+      data: vlmResult,
       extractedData: vlmResult.extractedData,
       imageQuality: vlmResult.imageQuality,
       sameProductWarning: vlmResult.sameProductWarning,
@@ -125,7 +121,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error('API /api/analyze error:', errorMsg);
+    console.error('[MetrologyAI] Gemini analysis failed:', errorMsg);
 
     if (errorMsg.includes('CONFIG_ERROR')) {
       return NextResponse.json(
@@ -141,10 +137,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (errorMsg.includes('API_ERROR') || errorMsg.includes('interpretation')) {
+    if (/429|quota|rate limit|resource exhausted/i.test(errorMsg)) {
       return NextResponse.json(
-        { success: false, error: 'Gemini returned an invalid analysis response. Please upload a clearer image.' },
-        { status: 422 }
+        { success: false, error: 'Gemini is temporarily rate-limited. Please try again shortly.' },
+        { status: 429 }
+      );
+    }
+
+    if (errorMsg.includes('API_ERROR')) {
+      return NextResponse.json(
+        { success: false, error: 'Unable to interpret the structured Gemini analysis. Please try again.' },
+        { status: 502 }
       );
     }
 

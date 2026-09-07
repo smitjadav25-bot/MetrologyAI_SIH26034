@@ -5,7 +5,6 @@ import {
   ConfidenceLevel,
   BoundingBox,
   ImageQualityAssessment,
-  ColorContrastAssessment,
   ContrastLevel,
   GeneralLegibilityLevel,
   PackagingExemptionType
@@ -38,7 +37,7 @@ Never create a quantity.
 Never create a date.
 Never create a batch number.
 
-If a field is not visible, return null for value, "low" for confidence, null for sourceImage, and null for box_2d.
+If a field is not visible, return an empty string for value and sourceImage, "low" for confidence, and [0, 0, 0, 0] for box_2d.
 If text is unclear, partially visible, blurred, cut off, or unreliable, mark the field as low confidence.
 If multiple images are provided, treat them as different views of the same product only when the user has indicated they belong to the same inspection. Combine information across images.
 For every extracted field, identify the source image label (e.g. "image-1", "image-2").
@@ -66,7 +65,7 @@ Images are labeled image-1, image-2, etc.
 Extract the following fields accurately as a valid JSON object.
 Include "box_2d": [ymin, xmin, ymax, xmax] (normalized 0-1000 integer coordinates) for each visible field:
 {
-  "product_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
+  "product_name": { "value": string, "confidence": "high" | "medium" | "low", "sourceImage": string, "box_2d": [number, number, number, number] },
   "product_category": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
   "manufacturer_name": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
   "manufacturer_address": { "value": string | null, "confidence": "high" | "medium" | "low", "sourceImage": string | null, "box_2d": [number, number, number, number] | null },
@@ -108,6 +107,95 @@ Include "box_2d": [ymin, xmin, ymax, xmax] (normalized 0-1000 integer coordinate
     "warning": string | null
   }
 }`;
+
+const FIELD_SCHEMA = {
+  type: 'object',
+  properties: {
+    value: { type: 'string' },
+    confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+    sourceImage: { type: 'string' },
+    box_2d: {
+      type: 'array',
+      items: { type: 'integer', minimum: 0, maximum: 1000 },
+      minItems: 4,
+      maxItems: 4
+    }
+  },
+  required: ['value', 'confidence', 'sourceImage', 'box_2d'],
+  additionalProperties: false
+} as const;
+
+const RESPONSE_JSON_SCHEMA = {
+  type: 'object',
+  properties: {
+    product_name: FIELD_SCHEMA,
+    product_category: FIELD_SCHEMA,
+    manufacturer_name: FIELD_SCHEMA,
+    manufacturer_address: FIELD_SCHEMA,
+    packer_name: FIELD_SCHEMA,
+    packer_address: FIELD_SCHEMA,
+    importer_name: FIELD_SCHEMA,
+    importer_address: FIELD_SCHEMA,
+    country_of_origin: FIELD_SCHEMA,
+    net_quantity: FIELD_SCHEMA,
+    unit_of_measurement: FIELD_SCHEMA,
+    mrp: FIELD_SCHEMA,
+    mrp_tax_declaration: FIELD_SCHEMA,
+    date_of_manufacture: FIELD_SCHEMA,
+    date_of_packing: FIELD_SCHEMA,
+    best_before_use_by: FIELD_SCHEMA,
+    consumer_care_phone: FIELD_SCHEMA,
+    consumer_care_email: FIELD_SCHEMA,
+    consumer_care_address: FIELD_SCHEMA,
+    batch_or_lot_no: FIELD_SCHEMA,
+    barcode: FIELD_SCHEMA,
+    other_declarations: FIELD_SCHEMA,
+    color_contrast_assessment: {
+      type: 'object',
+      properties: {
+        mrp_contrast: { type: 'string', enum: ['CONSPICUOUS', 'LOW_CONTRAST', 'POOR_CONTRAST'] },
+        mrp_colors: { type: 'string' },
+        net_quantity_contrast: { type: 'string', enum: ['CONSPICUOUS', 'LOW_CONTRAST', 'POOR_CONTRAST'] },
+        net_quantity_colors: { type: 'string' },
+        general_legibility: { type: 'string', enum: ['LEGIBLE', 'MODERATE_CONTRAST', 'LOW_CONTRAST', 'ILLEGIBLE'] },
+        detected_exemption: { type: 'string', enum: ['NONE', 'BLOWN_FORMED_MOLDED', 'HAND_SCRIPTED'] },
+        exemption_notes: { type: 'string' },
+        notes: { type: 'string' }
+      },
+      required: ['mrp_contrast', 'mrp_colors', 'net_quantity_contrast', 'net_quantity_colors', 'general_legibility', 'detected_exemption', 'exemption_notes', 'notes'],
+      additionalProperties: false
+    },
+    image_quality: {
+      type: 'object',
+      properties: {
+        isAcceptable: { type: 'boolean' },
+        issues: { type: 'array', items: { type: 'string' } },
+        warnings: { type: 'array', items: { type: 'string' } }
+      },
+      required: ['isAcceptable', 'issues', 'warnings'],
+      additionalProperties: false
+    },
+    same_product_verification: {
+      type: 'object',
+      properties: {
+        likelySameProduct: { type: 'boolean' },
+        warning: { type: 'string' }
+      },
+      required: ['likelySameProduct', 'warning'],
+      additionalProperties: false
+    }
+  },
+  required: [
+    'product_name', 'product_category', 'manufacturer_name', 'manufacturer_address',
+    'packer_name', 'packer_address', 'importer_name', 'importer_address',
+    'country_of_origin', 'net_quantity', 'unit_of_measurement', 'mrp',
+    'mrp_tax_declaration', 'date_of_manufacture', 'date_of_packing',
+    'best_before_use_by', 'consumer_care_phone', 'consumer_care_email',
+    'consumer_care_address', 'batch_or_lot_no', 'barcode', 'other_declarations',
+    'color_contrast_assessment', 'image_quality', 'same_product_verification'
+  ],
+  additionalProperties: false
+} as const;
 
 export async function analyzeProductPackagingWithVlm(
   images: InputImagePart[]
@@ -155,7 +243,8 @@ export async function analyzeProductPackagingWithVlm(
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
           responseMimeType: 'application/json',
-          temperature: 0.1 // minimal variance for strict inspection
+          responseJsonSchema: RESPONSE_JSON_SCHEMA,
+          temperature: 0.1
         }
       });
 
@@ -165,8 +254,7 @@ export async function analyzeProductPackagingWithVlm(
       }
     } catch (err: unknown) {
       lastError = err instanceof Error ? err : new Error(String(err));
-      console.warn(`Attempt with ${modelName} failed:`, lastError.message);
-      // Try next supported model in list
+      console.warn(`[MetrologyAI] Gemini attempt failed (${modelName}):`, lastError.message);
     }
   }
 
@@ -174,11 +262,13 @@ export async function analyzeProductPackagingWithVlm(
     throw lastError || new Error('API_ERROR: Unable to analyze the product image.');
   }
 
-  // Parse JSON response cleanly
   try {
-    const fenced = textResponse.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-    const raw = (fenced ? fenced[1] : textResponse).trim();
-    const parsed = JSON.parse(raw);
+    const parsed: unknown = JSON.parse(textResponse);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      throw new Error('Gemini returned a non-object response.');
+    }
+    const analysis = parsed as Record<string, unknown>;
+    const contrastAssessment = analysis.color_contrast_assessment as Record<string, unknown> | undefined;
 
     // Sanitize and format ExtractedData
     const defaultField: ExtractedField = { value: null, confidence: 'low', sourceImage: null, boundingBox: null, modifiedByInspector: false };
@@ -219,74 +309,74 @@ export async function analyzeProductPackagingWithVlm(
     };
 
     const extractedData: ExtractedData = {
-      product_name: sanitizeField(parsed.product_name),
-      product_category: sanitizeField(parsed.product_category),
-      manufacturer_name: sanitizeField(parsed.manufacturer_name),
-      manufacturer_address: sanitizeField(parsed.manufacturer_address),
-      packer_name: sanitizeField(parsed.packer_name),
-      packer_address: sanitizeField(parsed.packer_address),
-      importer_name: sanitizeField(parsed.importer_name),
-      importer_address: sanitizeField(parsed.importer_address),
-      country_of_origin: sanitizeField(parsed.country_of_origin),
-      net_quantity: sanitizeField(parsed.net_quantity),
-      unit_of_measurement: sanitizeField(parsed.unit_of_measurement),
-      mrp: sanitizeField(parsed.mrp),
-      mrp_tax_declaration: sanitizeField(parsed.mrp_tax_declaration),
-      date_of_manufacture: sanitizeField(parsed.date_of_manufacture),
-      date_of_packing: sanitizeField(parsed.date_of_packing),
-      best_before_use_by: sanitizeField(parsed.best_before_use_by),
-      consumer_care_phone: sanitizeField(parsed.consumer_care_phone),
-      consumer_care_email: sanitizeField(parsed.consumer_care_email),
-      consumer_care_address: sanitizeField(parsed.consumer_care_address),
-      batch_or_lot_no: sanitizeField(parsed.batch_or_lot_no),
-      barcode: sanitizeField(parsed.barcode),
-      other_declarations: sanitizeField(parsed.other_declarations),
+      product_name: sanitizeField(analysis.product_name),
+      product_category: sanitizeField(analysis.product_category),
+      manufacturer_name: sanitizeField(analysis.manufacturer_name),
+      manufacturer_address: sanitizeField(analysis.manufacturer_address),
+      packer_name: sanitizeField(analysis.packer_name),
+      packer_address: sanitizeField(analysis.packer_address),
+      importer_name: sanitizeField(analysis.importer_name),
+      importer_address: sanitizeField(analysis.importer_address),
+      country_of_origin: sanitizeField(analysis.country_of_origin),
+      net_quantity: sanitizeField(analysis.net_quantity),
+      unit_of_measurement: sanitizeField(analysis.unit_of_measurement),
+      mrp: sanitizeField(analysis.mrp),
+      mrp_tax_declaration: sanitizeField(analysis.mrp_tax_declaration),
+      date_of_manufacture: sanitizeField(analysis.date_of_manufacture),
+      date_of_packing: sanitizeField(analysis.date_of_packing),
+      best_before_use_by: sanitizeField(analysis.best_before_use_by),
+      consumer_care_phone: sanitizeField(analysis.consumer_care_phone),
+      consumer_care_email: sanitizeField(analysis.consumer_care_email),
+      consumer_care_address: sanitizeField(analysis.consumer_care_address),
+      batch_or_lot_no: sanitizeField(analysis.batch_or_lot_no),
+      barcode: sanitizeField(analysis.barcode),
+      other_declarations: sanitizeField(analysis.other_declarations),
       color_contrast_mrp: sanitizeField({
-        value: parsed.color_contrast_assessment?.mrp_contrast || 'CONSPICUOUS',
+        value: contrastAssessment?.mrp_contrast || 'CONSPICUOUS',
         confidence: 'high',
         sourceImage: null
       }),
       color_contrast_net_quantity: sanitizeField({
-        value: parsed.color_contrast_assessment?.net_quantity_contrast || 'CONSPICUOUS',
+        value: contrastAssessment?.net_quantity_contrast || 'CONSPICUOUS',
         confidence: 'high',
         sourceImage: null
       }),
       general_legibility: sanitizeField({
-        value: parsed.color_contrast_assessment?.general_legibility || 'LEGIBLE',
+        value: contrastAssessment?.general_legibility || 'LEGIBLE',
         confidence: 'high',
         sourceImage: null
       }),
       packaging_exemption: sanitizeField({
-        value: parsed.color_contrast_assessment?.detected_exemption || 'NONE',
+        value: contrastAssessment?.detected_exemption || 'NONE',
         confidence: 'high',
         sourceImage: null
       }),
-      contrast_assessment: parsed.color_contrast_assessment
+      contrast_assessment: contrastAssessment
         ? {
             mrpContrast: (['CONSPICUOUS', 'LOW_CONTRAST', 'POOR_CONTRAST', 'NOT_DETECTED'].includes(
-              String(parsed.color_contrast_assessment.mrp_contrast).toUpperCase()
+              String(contrastAssessment.mrp_contrast).toUpperCase()
             )
-              ? String(parsed.color_contrast_assessment.mrp_contrast).toUpperCase()
+              ? String(contrastAssessment.mrp_contrast).toUpperCase()
               : 'CONSPICUOUS') as ContrastLevel,
-            mrpTextColor: parsed.color_contrast_assessment.mrp_colors || null,
+            mrpTextColor: contrastAssessment.mrp_colors ? String(contrastAssessment.mrp_colors) : null,
             netQuantityContrast: (['CONSPICUOUS', 'LOW_CONTRAST', 'POOR_CONTRAST', 'NOT_DETECTED'].includes(
-              String(parsed.color_contrast_assessment.net_quantity_contrast).toUpperCase()
+              String(contrastAssessment.net_quantity_contrast).toUpperCase()
             )
-              ? String(parsed.color_contrast_assessment.net_quantity_contrast).toUpperCase()
+              ? String(contrastAssessment.net_quantity_contrast).toUpperCase()
               : 'CONSPICUOUS') as ContrastLevel,
-            netQuantityTextColor: parsed.color_contrast_assessment.net_quantity_colors || null,
+            netQuantityTextColor: contrastAssessment.net_quantity_colors ? String(contrastAssessment.net_quantity_colors) : null,
             generalLegibility: (['LEGIBLE', 'MODERATE_CONTRAST', 'LOW_CONTRAST', 'ILLEGIBLE'].includes(
-              String(parsed.color_contrast_assessment.general_legibility).toUpperCase()
+              String(contrastAssessment.general_legibility).toUpperCase()
             )
-              ? String(parsed.color_contrast_assessment.general_legibility).toUpperCase()
+              ? String(contrastAssessment.general_legibility).toUpperCase()
               : 'LEGIBLE') as GeneralLegibilityLevel,
             exemptionType: (['NONE', 'BLOWN_FORMED_MOLDED', 'HAND_SCRIPTED'].includes(
-              String(parsed.color_contrast_assessment.detected_exemption).toUpperCase()
+              String(contrastAssessment.detected_exemption).toUpperCase()
             )
-              ? String(parsed.color_contrast_assessment.detected_exemption).toUpperCase()
+              ? String(contrastAssessment.detected_exemption).toUpperCase()
               : 'NONE') as PackagingExemptionType,
-            exemptionNotes: parsed.color_contrast_assessment.exemption_notes || null,
-            notes: parsed.color_contrast_assessment.notes || null
+            exemptionNotes: contrastAssessment.exemption_notes ? String(contrastAssessment.exemption_notes) : null,
+            notes: contrastAssessment.notes ? String(contrastAssessment.notes) : null
           }
         : {
             mrpContrast: 'CONSPICUOUS',
@@ -296,14 +386,16 @@ export async function analyzeProductPackagingWithVlm(
           }
     };
 
+    const imageQualityData = analysis.image_quality as Record<string, unknown> | undefined;
     const imageQuality: ImageQualityAssessment = {
-      isAcceptable: parsed.image_quality?.isAcceptable ?? true,
-      issues: Array.isArray(parsed.image_quality?.issues) ? parsed.image_quality.issues : [],
-      warnings: Array.isArray(parsed.image_quality?.warnings) ? parsed.image_quality.warnings : []
+      isAcceptable: imageQualityData?.isAcceptable === true,
+      issues: Array.isArray(imageQualityData?.issues) ? imageQualityData.issues.map(String) : [],
+      warnings: Array.isArray(imageQualityData?.warnings) ? imageQualityData.warnings.map(String) : []
     };
 
-    const sameProductWarning = parsed.same_product_verification?.likelySameProduct === false
-      ? (parsed.same_product_verification?.warning || 'The uploaded images may not belong to the same product.')
+    const sameProductData = analysis.same_product_verification as Record<string, unknown> | undefined;
+    const sameProductWarning = sameProductData?.likelySameProduct === false
+      ? (String(sameProductData.warning || 'The uploaded images may not belong to the same product.'))
       : null;
 
     return {
@@ -312,7 +404,7 @@ export async function analyzeProductPackagingWithVlm(
       sameProductWarning
     };
   } catch (parseErr) {
-    console.error('Failed to parse Gemini VLM response:', parseErr, textResponse);
-    throw new Error('API_ERROR: Unable to reliably interpret declarations from the packaging. Please upload a clearer image.');
+    console.error('[MetrologyAI] Structured Gemini response validation failed:', parseErr);
+    throw new Error('API_ERROR: Gemini returned an invalid structured analysis response.');
   }
 }

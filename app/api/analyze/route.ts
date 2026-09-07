@@ -8,6 +8,22 @@ export const dynamic = 'force-dynamic';
 const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/jpg']);
 const maxSizeBytes = 4 * 1024 * 1024;
 
+function describeError(error: unknown): Record<string, unknown> {
+  if (!error || typeof error !== 'object') {
+    return { message: String(error) };
+  }
+
+  const candidate = error as Record<string, unknown>;
+  return {
+    status: candidate.status,
+    statusText: candidate.statusText,
+    code: candidate.code,
+    message: candidate.message,
+    details: candidate.details,
+    name: candidate.name
+  };
+}
+
 function hasValidImageSignature(buffer: Buffer, mimeType: string): boolean {
   if (mimeType === 'image/jpeg' || mimeType === 'image/jpg') {
     return buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
@@ -107,7 +123,11 @@ export async function POST(req: NextRequest) {
 
     // Pass real product images to Gemini VLM
     console.log('[MetrologyAI] Image received', { count: inputImages.length, totalSizeBytes });
-    console.log('[MetrologyAI] Sending images to Gemini', { mimeTypes: inputImages.map((image) => image.mimeType) });
+    console.log('[MetrologyAI] Sending images to Gemini', inputImages.map((image) => ({
+      mimeType: image.mimeType,
+      imageBytes: Math.floor(image.data.length * 3 / 4),
+      base64Length: image.data.length
+    })));
     const vlmResult = await analyzeProductPackagingWithVlm(inputImages);
     console.log('[MetrologyAI] Structured analysis validated');
 
@@ -121,7 +141,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
-    console.error('[MetrologyAI] Gemini analysis failed:', errorMsg);
+    console.error('[MetrologyAI] Gemini analysis failed:', describeError(err));
 
     if (errorMsg.includes('CONFIG_ERROR')) {
       return NextResponse.json(
@@ -141,6 +161,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'Gemini is temporarily rate-limited. Please try again shortly.' },
         { status: 429 }
+      );
+    }
+
+    if (/503|unavailable|high demand|service unavailable/i.test(errorMsg)) {
+      return NextResponse.json(
+        { success: false, error: 'Gemini is temporarily unavailable. Please try again shortly.' },
+        { status: 503 }
+      );
+    }
+
+    if (errorMsg.includes('TIMEOUT_ERROR')) {
+      return NextResponse.json(
+        { success: false, error: 'Gemini took too long to respond. Please try again.' },
+        { status: 504 }
       );
     }
 

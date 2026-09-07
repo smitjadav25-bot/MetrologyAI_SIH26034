@@ -22,6 +22,37 @@ export interface InputImagePart {
   sourceLabel: string; // e.g. 'image-1', 'image-2'
 }
 
+export interface GeminiErrorDetails {
+  status?: number;
+  statusText?: string;
+  code?: string | number;
+  message: string;
+  details?: unknown;
+}
+
+function getGeminiErrorDetails(error: unknown): GeminiErrorDetails {
+  if (!error || typeof error !== 'object') {
+    return { message: String(error) };
+  }
+
+  const candidate = error as Record<string, unknown>;
+  const nestedError = candidate.error && typeof candidate.error === 'object'
+    ? candidate.error as Record<string, unknown>
+    : undefined;
+
+  return {
+    status: typeof candidate.status === 'number' ? candidate.status : undefined,
+    statusText: typeof candidate.statusText === 'string' ? candidate.statusText : undefined,
+    code: typeof candidate.code === 'string' || typeof candidate.code === 'number'
+      ? candidate.code
+      : nestedError?.code as string | number | undefined,
+    message: typeof candidate.message === 'string'
+      ? candidate.message
+      : typeof nestedError?.message === 'string' ? nestedError.message : String(error),
+    details: candidate.details ?? nestedError?.details
+  };
+}
+
 const SYSTEM_INSTRUCTION = `You are a visual inspection assistant for packaged commodity labels.
 Analyze the provided product packaging image visually.
 Read and understand information that is actually visible on the packaging.
@@ -197,17 +228,49 @@ const RESPONSE_JSON_SCHEMA = {
   additionalProperties: false
 } as const;
 
+const GEMINI_REQUEST_TIMEOUT_MS = 45_000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error(`TIMEOUT_ERROR: Gemini request exceeded ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
+}
+
 export async function analyzeProductPackagingWithVlm(
   images: InputImagePart[]
 ): Promise<VlmAnalysisResponse> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey || apiKey.trim() === '') {
-    throw new Error('CONFIG_ERROR: AI analysis is currently unavailable. Please contact the system administrator.');
+    throw new Error('CONFIG_ERROR: GEMINI_API_KEY is not configured');
   }
 
   if (!images || images.length === 0) {
     throw new Error('INVALID_IMAGE: Please upload a valid product image.');
   }
+
+  const modelName = process.env.GEMINI_MODEL?.trim() || 'gemini-3.6-flash';
+  console.log('[Gemini] API key configured:', true);
+  console.log('[Gemini] Request started');
+  console.log('[Gemini] Model:', modelName);
+  console.log('[Gemini] Images:', images.map((image) => ({
+    sourceLabel: image.sourceLabel,
+    mimeType: image.mimeType,
+    base64Length: image.data.length,
+    estimatedBytes: Math.floor(image.data.length * 3 / 4)
+  })));
 
   const ai = new GoogleGenAI({ apiKey });
 
@@ -230,36 +293,36 @@ export async function analyzeProductPackagingWithVlm(
     text: EXTRACTION_SCHEMA_PROMPT
   });
 
-  // Keep the model explicit so production failures are actionable instead of hidden by invalid fallbacks.
-  const modelNames = ['gemini-3.6-flash'];
-  let lastError: Error | null = null;
+  let lastError: unknown = null;
   let textResponse = '';
 
-  for (const modelName of modelNames) {
-    try {
-      const response = await ai.models.generateContent({
+  try {
+    const response = await withTimeout(
+      ai.models.generateContent({
         model: modelName,
-        contents: contents,
+        contents,
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
           responseMimeType: 'application/json',
           responseJsonSchema: RESPONSE_JSON_SCHEMA,
           temperature: 0.1
         }
-      });
+      }),
+      GEMINI_REQUEST_TIMEOUT_MS
+    );
 
-      if (response && response.text) {
-        textResponse = response.text;
-        break;
-      }
-    } catch (err: unknown) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-      console.warn(`[MetrologyAI] Gemini attempt failed (${modelName}):`, lastError.message);
+    console.log('[Gemini] Response received');
+    if (response && response.text) {
+      textResponse = response.text;
     }
+  } catch (err: unknown) {
+    lastError = err;
+    const details = getGeminiErrorDetails(err);
+    console.error('[Gemini ERROR]', details);
   }
 
   if (!textResponse) {
-    throw lastError || new Error('API_ERROR: Unable to analyze the product image.');
+    throw lastError || new Error('API_ERROR: Gemini returned an empty response');
   }
 
   try {
